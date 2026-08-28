@@ -1,0 +1,72 @@
+/* Palette, type and spacing. Everything else reads from here.
+
+   Two accents, not one: nearly every entry has a two-pole 核心張力, so the page
+   needs a colour for each side. pole-a is the holding/stabilising side,
+   pole-b the releasing/updating side. Neutrals are biased cool-green toward
+   pole-a so the greys read as chosen rather than inherited. */
+
+:root {
+  --ground: #f2f4f1;
+  --surface: #fbfcfa;
+  --surface-2: #eaeee9;
+  --line: #d8ded8;
+  --line-soft: #e5eae4;
+  --ink: #141917;
+  --ink-2: #3a4441;
+  --muted: #67726e;
+  --flow: #8b9591;
+  --pole-a: #1d6b66;
+  --pole-b: #a0552a;
+  --wash-a: #e1ebe8;
+  --wash-b: #f3e8df;
+  --shadow: 0 1px 2px rgb(20 25 23 / 5%);
+
+  --font-display: "Noto Serif TC", Georgia, "Songti TC", serif;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Latin renders mono, CJK falls back to the sans face per character. */
+  --font-node: "IBM Plex Mono", "Noto Sans TC", ui-monospace, monospace;
+
+  --shell-max: 1240px;
+  --rail-w: 236px;
+  --pad: 24px;
+  --radius: 3px;
+}
+
+/* The un-stamped default: only the OS preference separates light from dark. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0f1413;
+    --surface: #161c1a;
+    --surface-2: #1d2523;
+    --line: #2a3331;
+    --line-soft: #212927;
+    --ink: #e6ebe8;
+    --ink-2: #c3cdc9;
+    --muted: #8b9793;
+    --flow: #6f7c78;
+    --pole-a: #5cc0b3;
+    --pole-b: #dd965d;
+    --wash-a: #14302d;
+    --wash-b: #2d2018;
+    --shadow: 0 1px 2px rgb(0 0 0 / 30%);
+  }
+}
+
+/* An explicit choice wins in both directions. */
+:root[data-theme="dark"] {
+  --ground: #0f1413;
+  --surface: #161c1a;
+  --surface-2: #1d2523;
+  --line: #2a3331;
+  --line-soft: #212927;
+  --ink: #e6ebe8;
+  --ink-2: #c3cdc9;
+  --muted: #8b9793;
+  --flow: #6f7c78;
+  --pole-a: #5cc0b3;
+  --pole-b: #dd965d;
+  --wash-a: #14302d;
+  --wash-b: #2d2018;
+  --shadow: 0 1px 2px rgb(0 0 0 / 30%);
+}

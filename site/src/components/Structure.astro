@@ -1,0 +1,104 @@
+---
+// Renders the typed nodes from src/lib/structure.ts. One branch per node kind;
+// the matching CSS block lives in src/styles/structure.css.
+import type { Group } from '../lib/structure';
+
+interface Props {
+  groups: Group[];
+}
+const { groups } = Astro.props;
+
+const POLE = ['pole--a', 'pole--b', 'pole--n'];
+
+/** A row repeating its left-hand term is a fork, so only name it once. */
+function collapse(rows: [string, string][]) {
+  let prev: string | null = null;
+  return rows.map(([k, v]) => {
+    const show = k !== prev;
+    prev = k;
+    return { k, v, show };
+  });
+}
+---
+{groups.map((g) => {
+  switch (g.kind) {
+    case 'sublabel':
+      return <p class="sublabel">{g.text}</p>;
+
+    case 'vflow':
+      return (
+        <div class="flow">
+          {g.steps.map((s) => (
+            <div class="fs"><span class="fc">{s.connector}</span><span class="fn">{s.text}</span></div>
+          ))}
+        </div>
+      );
+
+    case 'chain':
+      return (
+        <div class="chain">
+          {g.nodes.map((n, i) => (
+            <Fragment>
+              {i > 0 && <span class="ch-ar">→</span>}
+              <span class="ch-n">{n}</span>
+            </Fragment>
+          ))}
+        </div>
+      );
+
+    case 'rows':
+      return (
+        <Fragment>
+          {g.head && <p class="rows-head">{g.head}</p>}
+          <div class:list={['rows', g.op === '：' && 'rows--pair']}>
+            {collapse(g.rows).map(({ k, v, show }) => (
+              <Fragment>
+                <div class="r-t">{show ? k : ''}</div>
+                {g.op !== '：' && <div class="r-o">{g.op}</div>}
+                <div class="r-d">{v}</div>
+              </Fragment>
+            ))}
+          </div>
+        </Fragment>
+      );
+
+    case 'poles':
+      return (
+        <div class="poles">
+          {g.poles.map(([k, v], i) => (
+            <div class:list={['pole', POLE[i] ?? 'pole--n']}>
+              <p class="pole-k">{k}</p>
+              <p class="pole-v">{v}</p>
+            </div>
+          ))}
+        </div>
+      );
+
+    case 'compare':
+      return (
+        <div class="cmp">
+          <span class="cmp-s cmp-a">{g.a}</span>
+          <span class="cmp-op">≠</span>
+          <span class="cmp-s cmp-b">{g.b}</span>
+        </div>
+      );
+
+    case 'axis':
+      return (
+        <div class="axis">
+          <span class="ax-e ax-a">{g.a}</span>
+          <span class="ax-l"></span>
+          <span class="ax-e ax-b">{g.b}</span>
+        </div>
+      );
+
+    case 'equation':
+      return <p class="equation">{g.text}</p>;
+
+    case 'chips':
+      return <ul class="chips">{g.items.map((i) => <li>{i}</li>)}</ul>;
+
+    default:
+      return <p class="prose">{g.text}</p>;
+  }
+})}

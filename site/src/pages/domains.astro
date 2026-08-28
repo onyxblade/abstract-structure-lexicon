@@ -1,0 +1,91 @@
+---
+import Base from '../layouts/Base.astro';
+import EntryName from '../components/EntryName.astro';
+import { loadLexicon, entryUrl } from '../lib/lexicon';
+import { DOMAIN_BUCKETS } from '../lib/overlays';
+import type { Entry, Example } from '../lib/parse';
+
+const lex = await loadLexicon();
+
+// Every tagged example, re-sorted by bucket instead of by entry.
+type Row = { entry: Entry; example: Example };
+const buckets = new Map<string, Row[]>(DOMAIN_BUCKETS.map(([b]) => [b, []]));
+const other: Row[] = [];
+for (const entry of lex.entries) {
+  for (const example of entry.examples) {
+    if (!example.domain) continue;
+    const b = lex.bucketOf.get(example.domain);
+    (b ? buckets.get(b)! : other).push({ entry, example });
+  }
+}
+
+const sections: [string, Row[]][] = ([...DOMAIN_BUCKETS.map(([b]): [string, Row[]] => [b, buckets.get(b)!]),
+  ['其他', other] as [string, Row[]],
+]).filter(([, rows]) => rows.length);
+
+/** Consecutive rows from one entry only name it once. */
+function mark(rows: Row[]) {
+  let prev: string | null = null;
+  return rows.map((r) => {
+    const cont = r.entry.name === prev;
+    prev = r.entry.name;
+    return { ...r, cont };
+  });
+}
+
+const untagged = lex.entries.filter((e) => e.examples.some((x) => !x.domain));
+---
+<Base lex={lex} view="domains" title="領域切面 — 抽象結構詞庫">
+  <div class="board">
+    <div class="board-head">
+      <h2>領域切面</h2>
+      <p>
+        同一個結構在不同領域長什麼樣。這是把每個詞條的例子按領域重新排列的結果，
+        領域分組由例子標籤推斷，在 src/lib/overlays.ts 裡可以改。
+      </p>
+    </div>
+
+    {sections.map(([title, rows]) => (
+      <section class="dom" data-group>
+        <h3>{title}</h3>
+        <p class="dom-meta">
+          {new Set(rows.map((r) => r.entry.name)).size} 個詞條 · {rows.length} 個例子
+        </p>
+        <ul>
+          {mark(rows).map(({ entry, example, cont }) => (
+            <li class:list={[cont && 'is-cont']} data-entry={entry.name}>
+              {cont ? (
+                <span></span>
+              ) : (
+                <a class="dom-entry" href={entryUrl(entry.name)}>
+                  <EntryName name={entry.name} plain />
+                </a>
+              )}
+              <span class="dom-ex">
+                <span class="tag">{example.domain}</span>{example.text}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+
+    {untagged.length > 0 && (
+      <div class="gaps">
+        <h3>例子沒有領域標籤</h3>
+        <p>這些詞條有例子，但至少有一條沒寫成「領域：內容」，所以不會出現在上面的切面裡。</p>
+        <ul>
+          {untagged.map((e) => (
+            <li data-entry={e.name}>
+              <a class="dom-entry" href={entryUrl(e.name)}>
+                <EntryName name={e.name} plain />
+              </a>
+              <small>{e.examples.filter((x) => !x.domain).length} / {e.examples.length} 條未標</small>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+    <p class="empty is-hidden" data-empty=".board">沒有符合的例子。</p>
+  </div>
+</Base>

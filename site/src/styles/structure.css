@@ -1,0 +1,103 @@
+/* The structure primitives. One block per node kind in src/lib/structure.ts —
+   change how a kind looks by changing its block here. */
+
+/* → at the head of each line: a sequence read downward. */
+.flow { margin-bottom: 14px; display: flex; flex-direction: column; }
+.fs { display: grid; grid-template-columns: 26px 1fr; align-items: baseline; padding: 3px 0; }
+.fc { font-family: var(--font-mono); color: var(--flow); font-size: 0.9375rem; line-height: 1.7; }
+.fn { font-family: var(--font-node); font-size: 0.875rem; line-height: 1.7; color: var(--ink); }
+/* the hairline joining consecutive steps */
+.fs + .fs .fc { position: relative; }
+.fs + .fs .fc::before {
+  content: "";
+  position: absolute;
+  left: 0.28em;
+  top: -0.85em;
+  height: 0.7em;
+  width: 1px;
+  background: var(--line);
+}
+
+/* → inside a line: a chain read across. */
+.chain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-bottom: 12px; }
+.ch-n {
+  font-family: var(--font-node);
+  font-size: 0.8125rem;
+  padding: 5px 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  line-height: 1.5;
+}
+.ch-ar { font-family: var(--font-mono); color: var(--flow); font-size: 0.875rem; }
+
+/* repeated `term OP value` lines, aligned into columns */
+.rows {
+  display: grid;
+  grid-template-columns: max-content max-content 1fr;
+  gap: 2px 12px;
+  margin-bottom: 14px;
+  align-items: baseline;
+}
+.rows--pair { grid-template-columns: max-content 1fr; gap: 2px 18px; }
+.rows-head { margin-bottom: 10px; font-size: 0.9375rem; color: var(--ink); font-weight: 500; }
+.r-t { font-family: var(--font-node); font-size: 0.8125rem; color: var(--pole-a); font-weight: 500; padding: 4px 0; }
+.r-o { font-family: var(--font-mono); color: var(--flow); font-size: 0.8125rem; padding: 4px 0; }
+.r-d { font-size: 0.875rem; color: var(--ink-2); padding: 4px 0; line-height: 1.7; }
+
+/* the same rows under 核心張力: two sides of one trade-off, side by side */
+.poles { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.pole { padding: 14px 16px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); }
+.pole--a { border-left: 2px solid var(--pole-a); background: var(--wash-a); }
+.pole--b { border-left: 2px solid var(--pole-b); background: var(--wash-b); }
+.pole--n { border-left: 2px solid var(--flow); }
+.pole-k { margin-bottom: 6px; font-family: var(--font-node); font-size: 0.8125rem; font-weight: 500; color: var(--ink); }
+.pole--a .pole-k { color: var(--pole-a); }
+.pole--b .pole-k { color: var(--pole-b); }
+.pole-v { font-size: 0.875rem; line-height: 1.7; color: var(--ink-2); }
+
+/* ≠ : two things being told apart */
+.cmp { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 12px; }
+.cmp-s { font-family: var(--font-node); font-size: 0.8125rem; padding: 5px 10px; border-radius: var(--radius); }
+.cmp-a { background: var(--wash-a); color: var(--pole-a); }
+.cmp-b { background: var(--wash-b); color: var(--pole-b); }
+.cmp-op { font-family: var(--font-mono); color: var(--flow); font-size: 1rem; }
+
+/* ↔ : an axis, drawn as one */
+.axis { display: flex; align-items: center; gap: 12px; margin: 4px 0 16px; flex-wrap: wrap; }
+.ax-e { font-family: var(--font-node); font-size: 0.8125rem; font-weight: 500; }
+.ax-a { color: var(--pole-a); }
+.ax-b { color: var(--pole-b); }
+.ax-l { flex: 1; min-width: 60px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--pole-a), var(--pole-b)); }
+
+/* = : a formula, left as one */
+.equation {
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-family: var(--font-node);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  color: var(--ink);
+  overflow-x: auto;
+}
+
+/* a set of short terms with no relation between them */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; list-style: none; }
+.chips li,
+.chip {
+  font-family: var(--font-node);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  color: var(--ink-2);
+  background: var(--surface);
+}
+
+.sublabel { margin: 16px 0 8px; font-size: 0.8125rem; font-weight: 500; color: var(--ink); letter-spacing: 0.04em; }
+.sublabel::before { content: "▸ "; color: var(--flow); }
+.prose { margin-bottom: 12px; color: var(--ink-2); max-width: 60ch; }

@@ -1,0 +1,33 @@
+---
+import type { Section } from '../lib/parse';
+import { renderBlock, TENSION_LABELS } from '../lib/structure';
+import Structure from './Structure.astro';
+
+interface Props {
+  section: Section;
+}
+const { section } = Astro.props;
+const tension = TENSION_LABELS.includes(section.label);
+const quote = section.label === '使用句';
+---
+<section class:list={['sec', tension && 'sec--tension']}>
+  <h3 class="sec-label">{section.label}</h3>
+  {section.inline && <p class="prose">{section.inline}</p>}
+  {section.blocks.map((b) =>
+    b.type === 'code' ? (
+      quote ? (
+        <blockquote class="usage">
+          {b.lines.filter((x) => x.trim()).map((x, i) => (
+            <Fragment>{i > 0 && <br />}{x.trim()}</Fragment>
+          ))}
+        </blockquote>
+      ) : (
+        <Structure groups={renderBlock(b.lines, { tension })} />
+      )
+    ) : b.type === 'list' ? (
+      <ul class="bullets">{b.items.map((i) => <li>{i}</li>)}</ul>
+    ) : (
+      <p class="prose">{b.text}</p>
+    )
+  )}
+</section>

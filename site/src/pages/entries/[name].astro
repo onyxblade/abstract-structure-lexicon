@@ -1,0 +1,89 @@
+---
+import Base from '../../layouts/Base.astro';
+import EntryName from '../../components/EntryName.astro';
+import Section from '../../components/Section.astro';
+import { loadLexicon, entryUrl } from '../../lib/lexicon';
+import { relatedTo, isLinked } from '../../lib/graph';
+
+export async function getStaticPaths() {
+  const lex = await loadLexicon();
+  return lex.entries.map((e, i) => ({
+    params: { name: e.name },
+    props: {
+      name: e.name,
+      prev: lex.entries[i - 1]?.name ?? null,
+      next: lex.entries[i + 1]?.name ?? null,
+    },
+  }));
+}
+
+const lex = await loadLexicon();
+const { name, prev, next } = Astro.props;
+const e = lex.byName.get(name)!;
+const related = relatedTo(e, lex.graph);
+const family = lex.familyOf.get(e.name);
+---
+<Base
+  lex={lex}
+  view="entries"
+  title={`${e.name} — 抽象結構詞庫`}
+  description={e.oneLine}
+  current={e.name}
+>
+  <article class="entry">
+    <header class="entry-head">
+      <p class="eyebrow">{[family, e.status].filter(Boolean).join(' · ')}</p>
+      <h2 class="entry-title"><EntryName name={e.name} /></h2>
+      <p class="one-line">{e.oneLine}</p>
+    </header>
+
+    {e.body.map((s) => <Section section={s} />)}
+
+    <section class="sec">
+      <h3 class="sec-label">例子</h3>
+      <ul class="examples">
+        {e.examples.map((x) => (
+          <li>
+            <span class="ex-d">{x.domain}</span>
+            <span class="ex-t">{x.text}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="sec">
+      <h3 class="sec-label">相近概念</h3>
+      <ul class="cn-list">
+        {e.concepts.map((c) => (
+          <li>
+            {isLinked(c, lex.graph)
+              ? <a class="cn" href={`/?q=${encodeURIComponent(c)}`}>{c}</a>
+              : <span class="cn">{c}</span>}
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    {related.length > 0 && (
+      <section class="sec">
+        <h3 class="sec-label">相關詞條</h3>
+        <div class="rel">
+          {related.map((r) => (
+            <a href={entryUrl(r.name)}>
+              <b><EntryName name={r.name} plain /></b>
+              <small>共用 {r.why}</small>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <footer class="entry-foot">
+      <span>entries/{e.file}</span>
+      <span class="entry-nav">
+        {prev && <a href={entryUrl(prev)}>← {prev}</a>}
+        {next && <a href={entryUrl(next)}>{next} →</a>}
+      </span>
+    </footer>
+  </article>
+</Base>

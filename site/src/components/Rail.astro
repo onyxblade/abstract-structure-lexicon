@@ -1,0 +1,42 @@
+---
+import { byFamily, entryUrl, type Lexicon } from '../lib/lexicon';
+import EntryName from './EntryName.astro';
+
+interface Props {
+  lex: Lexicon;
+  /** Name of the entry currently open, if any. */
+  current?: string;
+  /** True on the overview page, where 全部詞條 is the active state. */
+  atRoot?: boolean;
+}
+const { lex, current, atRoot = false } = Astro.props;
+const groups = byFamily(lex);
+---
+<aside class="rail" id="rail">
+  <input
+    class="search"
+    id="search"
+    type="search"
+    placeholder="搜尋詞條、例子、概念…"
+    aria-label="搜尋詞庫"
+    autocomplete="off"
+  />
+  <a class:list={['all-btn', atRoot && 'is-on']} href="/">全部詞條</a>
+  <div id="index">
+    {groups.map(([fam, es]) => (
+      <section class="fam" data-group>
+        <h4 class="fam-label">{fam}</h4>
+        <ul>
+          {es.map((e) => (
+            <li data-entry={e.name}>
+              <a class:list={['idx', e.name === current && 'is-on']} href={entryUrl(e.name)}>
+                <EntryName name={e.name} plain />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+  <p class="empty is-hidden" data-empty="#index">沒有符合的詞條。</p>
+</aside>

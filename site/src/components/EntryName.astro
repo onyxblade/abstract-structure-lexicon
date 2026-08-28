@@ -1,0 +1,20 @@
+---
+// Paired names like 潛勢寫入—情境實現 are two poles of one structure, so each
+// half takes its pole's colour. `plain` keeps the dash but drops the colours,
+// for places where the name sits inside a list rather than as a title.
+interface Props {
+  name: string;
+  plain?: boolean;
+}
+const { name, plain = false } = Astro.props;
+const i = name.indexOf('—');
+const a = i < 0 ? name : name.slice(0, i);
+const b = i < 0 ? '' : name.slice(i + 1);
+---
+{i < 0 ? (
+  a
+) : plain ? (
+  <Fragment>{a}<span class="np-dash">—</span>{b}</Fragment>
+) : (
+  <Fragment><span class="np--a">{a}</span><span class="np-dash">—</span><span class="np--b">{b}</span></Fragment>
+)}

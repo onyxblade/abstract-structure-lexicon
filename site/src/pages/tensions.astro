@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+import EntryName from '../components/EntryName.astro';
+import Structure from '../components/Structure.astro';
+import { loadLexicon, entryUrl } from '../lib/lexicon';
+import { renderBlock, TENSION_LABELS } from '../lib/structure';
+
+const lex = await loadLexicon();
+
+const withTension = [];
+const without = [];
+for (const e of lex.entries) {
+  const s = e.body.find((b) => TENSION_LABELS.includes(b.label));
+  if (s) withTension.push({ e, s });
+  else without.push(e);
+}
+---
+<Base lex={lex} view="tensions" title="張力一覽 — 抽象結構詞庫">
+  <div class="board">
+    <div class="board-head">
+      <h2>張力一覽</h2>
+      <p>詞庫的骨架：每個結構自己的取捨。左邊是一個極端，右邊是另一個。</p>
+    </div>
+
+    {withTension.map(({ e, s }) => (
+      <section class="tn" data-entry={e.name}>
+        <div class="tn-head">
+          <a class="tn-name" href={entryUrl(e.name)}><EntryName name={e.name} plain /></a>
+          <span class="tn-tag">{s.label}</span>
+        </div>
+        {s.blocks.map((b) =>
+          b.type === 'code' ? (
+            <Structure groups={renderBlock(b.lines, { tension: true })} />
+          ) : (
+            <p class="prose">{b.type === 'list' ? b.items.join('；') : b.text}</p>
+          )
+        )}
+      </section>
+    ))}
+
+    {without.length > 0 && (
+      <div class="gaps">
+        <h3>尚未寫出核心張力</h3>
+        <p>這些詞條有結構，但沒有一段明確寫出「太多會怎樣、太少會怎樣」。旁邊是它們目前用來代替的段落。</p>
+        <ul>
+          {without.map((e) => (
+            <li data-entry={e.name}>
+              <a class="dom-entry" href={entryUrl(e.name)}>
+                <EntryName name={e.name} plain />
+              </a>
+              <small>{e.body.map((b) => b.label).filter((l) => l !== '結構').join(' · ') || '只有結構'}</small>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+    <p class="empty is-hidden" data-empty=".board">沒有符合的詞條。</p>
+  </div>
+</Base>

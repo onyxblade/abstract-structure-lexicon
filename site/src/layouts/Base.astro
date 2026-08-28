@@ -1,0 +1,150 @@
+---
+import type { Lexicon } from '../lib/lexicon';
+import Masthead from '../components/Masthead.astro';
+import Rail from '../components/Rail.astro';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import '../styles/structure.css';
+import '../styles/content.css';
+
+interface Props {
+  lex: Lexicon;
+  view: 'entries' | 'domains' | 'tensions';
+  title: string;
+  description?: string;
+  current?: string;
+  atRoot?: boolean;
+}
+const {
+  lex,
+  view,
+  title,
+  description = '可跨領域套用的抽象結構詞庫。',
+  current,
+  atRoot = false,
+} = Astro.props;
+---
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500&family=Noto+Serif+TC:wght@500;700&display=swap"
+    />
+    <script is:inline>
+      // Applied before first paint so an explicit choice never flashes.
+      try {
+        const t = localStorage.getItem('lex-theme');
+        if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t;
+      } catch (_) {}
+    </script>
+  </head>
+  <body>
+    <Masthead lex={lex} view={view} />
+    <div class="shell">
+      <Rail lex={lex} current={current} atRoot={atRoot} />
+      <main class="stage">
+        <slot />
+      </main>
+    </div>
+    <footer class="site-foot">
+      <div>{lex.counts.entries} 詞條 · 由 entries/*.md 產生 · 狀態全為 draft</div>
+    </footer>
+
+    <script>
+      // ---- theme ----
+      const root = document.documentElement;
+      const readTheme = () => {
+        try {
+          return localStorage.getItem('lex-theme') ?? 'system';
+        } catch (_) {
+          return 'system';
+        }
+      };
+      const paintTheme = (v: string) => {
+        if (v === 'system') delete root.dataset.theme;
+        else root.dataset.theme = v;
+        for (const b of document.querySelectorAll<HTMLElement>('[data-theme-set]')) {
+          b.setAttribute('aria-pressed', String(b.dataset.themeSet === v));
+        }
+      };
+      paintTheme(readTheme());
+      for (const b of document.querySelectorAll<HTMLElement>('[data-theme-set]')) {
+        b.addEventListener('click', () => {
+          const v = b.dataset.themeSet!;
+          try {
+            if (v === 'system') localStorage.removeItem('lex-theme');
+            else localStorage.setItem('lex-theme', v);
+          } catch (_) {}
+          paintTheme(v);
+        });
+      }
+
+      // ---- rail toggle (narrow screens) ----
+      const rail = document.getElementById('rail');
+      const railToggle = document.getElementById('railToggle');
+      railToggle?.addEventListener('click', () => {
+        rail?.classList.toggle('is-open');
+        railToggle.classList.toggle('is-open');
+      });
+
+      // ---- search ----
+      // Anything carrying data-entry hides when its entry does not match, so the
+      // same three lines filter the sidebar, the cards, the domain rows and the
+      // tension board. A data-group wrapper disappears once it is empty.
+      const input = document.getElementById('search') as HTMLInputElement | null;
+      let hay: Record<string, string> | null = null;
+
+      async function index() {
+        if (!hay) hay = await fetch('/search.json').then((r) => r.json());
+        return hay!;
+      }
+
+      async function apply(q: string) {
+        const needle = q.trim().toLowerCase();
+        const map = needle ? await index() : null;
+        const ok = (name: string) => !map || (map[name] ?? '').includes(needle);
+
+        for (const el of document.querySelectorAll<HTMLElement>('[data-entry]')) {
+          el.classList.toggle('is-hidden', !ok(el.dataset.entry!));
+        }
+        for (const g of document.querySelectorAll<HTMLElement>('[data-group]')) {
+          const kids = [...g.querySelectorAll<HTMLElement>('[data-entry]')];
+          g.classList.toggle('is-hidden', kids.length > 0 && kids.every((k) => k.classList.contains('is-hidden')));
+        }
+        // Each data-empty note names the region it speaks for.
+        for (const note of document.querySelectorAll<HTMLElement>('[data-empty]')) {
+          const scope = document.querySelector(note.dataset.empty!);
+          const hits = [...(scope?.querySelectorAll<HTMLElement>('[data-entry]') ?? [])].some(
+            (k) => !k.classList.contains('is-hidden')
+          );
+          note.classList.toggle('is-hidden', hits);
+        }
+
+        try {
+          sessionStorage.setItem('lex-q', needle);
+        } catch (_) {}
+      }
+
+      if (input) {
+        input.addEventListener('input', () => void apply(input.value));
+        // ?q= wins over the remembered query, so concept links land on a result.
+        let start = new URL(location.href).searchParams.get('q');
+        if (start === null) {
+          try {
+            start = sessionStorage.getItem('lex-q');
+          } catch (_) {}
+        }
+        if (start) {
+          input.value = start;
+          void apply(start);
+        }
+      }
+    </script>
+  </body>
+</html>

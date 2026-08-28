@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import EntryName from '../components/EntryName.astro';
+import { loadLexicon, byFamily, entryUrl } from '../lib/lexicon';
+
+const lex = await loadLexicon();
+const groups = byFamily(lex);
+---
+<Base lex={lex} view="entries" title="抽象結構詞庫" atRoot>
+  <div class="ov-head">
+    <h2>全部詞條</h2>
+    <p>先讀一句話定義，再進入結構。分組是依詞條內容推斷的，不在原始檔案裡。</p>
+  </div>
+  {groups.map(([fam, es]) => (
+    <section class="ov-fam" data-group>
+      <h3>{fam}</h3>
+      <div class="ov-grid">
+        {es.map((e) => (
+          <a class="card" href={entryUrl(e.name)} data-entry={e.name}>
+            <h4><EntryName name={e.name} plain /></h4>
+            <p>{e.oneLine}</p>
+          </a>
+        ))}
+      </div>
+    </section>
+  ))}
+  <p class="empty is-hidden" data-empty=".stage">沒有符合的詞條。</p>
+</Base>
