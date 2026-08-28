@@ -315,9 +315,9 @@ a.cn:hover { background: var(--wash-a); }
    traits. */
 .tr--go { background: var(--wash-b); color: var(--pole-b); }
 .tr--go:hover { border-color: var(--pole-b); }
+.pr-n { font-size: 0.875rem; color: var(--ink-2); }
+.pr-n a:hover { color: var(--pole-a); }
 
-.tr-lead { margin-bottom: 18px; font-size: 0.875rem; font-weight: 300; color: var(--muted); max-width: 62ch; }
-.tr-lead code { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--ink-2); }
 
 /* entry × trait. The one view where composition is visible: a row is an
    entry's signature, a column is a trait's extension. */
@@ -353,20 +353,6 @@ a.cn:hover { background: var(--wash-a); }
 .mx tbody tr:hover td { background: var(--surface-2); }
 .mx tbody tr:hover td.is-on { background: var(--wash-a); }
 
-.tr-card { margin-bottom: 34px; scroll-margin-top: 16px; }
-.tr-card-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 12px;
-  padding-bottom: 8px;
-  margin-bottom: 12px;
-  border-bottom: 1px solid var(--line);
-}
-.tr-id { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.12em; color: var(--flow); }
-.tr-card-head h3 { font-family: var(--font-display); font-weight: 500; font-size: 1.125rem; letter-spacing: 0.08em; }
-.tr-n { margin-left: auto; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
-.tr-gloss { font-size: 0.9375rem; line-height: 1.85; color: var(--ink); max-width: 60ch; }
 /* the question you ask an entry to decide whether it carries the trait */
 .tr-test { margin: 4px 0 14px; font-size: 0.875rem; color: var(--muted); max-width: 60ch; }
 .tr-test::before { content: "? "; font-family: var(--font-mono); color: var(--pole-b); }
@@ -384,15 +370,9 @@ a.cn:hover { background: var(--wash-a); }
 .tr-of a:hover { color: var(--pole-a); }
 .tr-of small { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.04em; color: var(--muted); }
 
-.prs li { grid-template-columns: 1fr max-content; gap: 4px 20px; }
-.pr-n { font-size: 0.875rem; color: var(--ink-2); }
-.pr-n a:hover { color: var(--pole-a); }
-.pr-x { margin: 0 8px; font-family: var(--font-mono); color: var(--flow); }
-.pr-t { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.06em; color: var(--pole-a); }
 
 @media (max-width: 900px) {
-  .tr-of li,
-  .prs li { grid-template-columns: 1fr; }
+  .tr-of li { grid-template-columns: 1fr; }
 }
 
 /* The name column stays put when the matrix scrolls sideways, which is the
@@ -511,3 +491,131 @@ a.cn:hover { background: var(--wash-a); }
   .bd-hits li { grid-template-columns: 1fr; }
 }
 .bd-all { margin-bottom: 34px; font-size: 0.875rem; font-weight: 300; color: var(--muted); }
+
+/* ---------- ladder: one trait, shallow end first ---------- */
+
+/* The name is rung 04, not the title. What sits at the top is the sentence a
+   first reader can hold without being told anything. */
+.lad { max-width: 72ch; }
+.lad-head { padding-bottom: 26px; margin-bottom: 34px; border-bottom: 1px solid var(--line); }
+.lad-plain {
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+}
+.rung { margin-bottom: 36px; }
+.rung h3 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+}
+.rung h3 i { font-style: normal; color: var(--flow); }
+.rung h3::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.rung-p { max-width: 58ch; font-size: 0.9375rem; line-height: 2; color: var(--ink); }
+.rung-p + .rung-p { margin-top: 10px; }
+
+/* The minimal pair. A concept is only learnable against a case that lacks it,
+   so the two sit side by side and only one of them is lit. */
+.cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.cmp-side {
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.cmp-side--on { background: var(--wash-a); border-color: var(--pole-a); }
+.cmp-tag {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+}
+.cmp-side--on .cmp-tag { color: var(--pole-a); }
+.cmp-side p { font-size: 0.875rem; line-height: 1.85; color: var(--ink-2); }
+
+.lad-name {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+.lad-name code { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.1em; color: var(--flow); }
+.lad-form {
+  margin-top: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-left: 2px solid var(--pole-b);
+  font-family: var(--font-node);
+  font-size: 0.8125rem;
+  line-height: 1.9;
+  color: var(--ink-2);
+}
+
+.lad-rel { list-style: none; display: flex; flex-direction: column; gap: 1px; }
+.lad-rel li {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 4px 16px;
+  padding: 9px 0;
+  border-top: 1px solid var(--line-soft);
+  align-items: baseline;
+}
+.lad-rel li:first-child { border-top: 0; }
+.lad-rel span { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.1em; color: var(--flow); }
+.lad-rel em { font-style: normal; font-size: 0.875rem; font-weight: 300; color: var(--muted); }
+.lad-rel a { font-size: 0.875rem; }
+.lad-rel a:hover { color: var(--pole-a); }
+.lad-rel a i { margin-left: 10px; font-style: normal; font-family: var(--font-mono); font-size: 0.6875rem; color: var(--flow); }
+
+/* ---------- traits index, by layer ---------- */
+.lv { margin-bottom: 30px; }
+.lv h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+}
+.lv h3 small { font-family: var(--font-body); font-weight: 300; letter-spacing: 0; color: var(--flow); }
+.lv-list { list-style: none; display: flex; flex-direction: column; gap: 1px; }
+.lv-list > li { border-top: 1px solid var(--line-soft); }
+.lv-list > li:first-child { border-top: 0; }
+.lv-list a {
+  display: grid;
+  grid-template-columns: 1fr max-content max-content;
+  gap: 4px 18px;
+  align-items: baseline;
+  padding: 11px 0;
+}
+.lv-plain { font-size: 0.9375rem; color: var(--ink); }
+.lv-list a:hover .lv-plain { color: var(--pole-a); }
+.lv-name { font-family: var(--font-display); font-size: 0.875rem; letter-spacing: 0.08em; color: var(--muted); }
+.lv-n { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--flow); }
+.lv-needs { display: block; padding-bottom: 9px; font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.04em; color: var(--flow); }
+.gaps > p.gaps-foot { margin: 16px 0 0; max-width: 56ch; font-size: 0.8125rem; line-height: 1.9; }
+
+@media (max-width: 900px) {
+  .cmp { grid-template-columns: 1fr; }
+  .lv-list a { grid-template-columns: 1fr max-content; }
+  .lad-rel li { grid-template-columns: 1fr; }
+}
+.rung .tr-of + .rung-p { margin-top: 18px; }

@@ -1,7 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import EntryName from '../../components/EntryName.astro';
-import { loadLexicon, entryUrl, buildUrl, href } from '../../lib/lexicon';
+import { loadLexicon, entryUrl, buildUrl, traitUrl, href } from '../../lib/lexicon';
 import { TRAITS } from '../../lib/overlays';
 
 // One page per place in the lattice. A page load per step is the point: the
@@ -41,7 +41,7 @@ const arrived = here.extent.length <= 4;
             手上有
             <span class="bd-chips">
               {here.intent.map((t) => (
-                <a class="tr" href={href(`/traits/#${t.id}`)} title={t.gloss}><i>{t.id}</i>{t.name}</a>
+                <a class="tr" href={traitUrl(t.id)} title={t.plain}><i>{t.id}</i>{t.name}</a>
               ))}
             </span>
           </Fragment>

@@ -99,5 +99,7 @@ export const href = (path: string) => `${BASE}${path}`;
 
 export const entryUrl = (name: string) => href(`/entries/${encodeURIComponent(name)}/`);
 
+export const traitUrl = (id: string) => href(`/traits/${id}/`);
+
 /** A place in the lattice. The root holds no trait, so it has no path segment. */
 export const buildUrl = (id: string) => href(id ? `/build/${id}/` : '/build/');

@@ -1,0 +1,121 @@
+---
+import Base from '../../layouts/Base.astro';
+import EntryName from '../../components/EntryName.astro';
+import { loadLexicon, entryUrl, traitUrl, buildUrl } from '../../lib/lexicon';
+import { TRAITS } from '../../lib/overlays';
+import { traitRows, traitsOf, depthOf, needsOf, buildsOn, taught } from '../../lib/traits';
+
+// One trait per page, climbed from the shallow end. The name arrives at rung
+// 04, not at the top: 潛伏 and 程度 are compressions, and a compression is only
+// readable once you are already holding the thing it compresses.
+export async function getStaticPaths() {
+  return TRAITS.map((t) => ({ params: { id: t.id }, props: { id: t.id } }));
+}
+
+const { id } = Astro.props as { id: string };
+const lex = await loadLexicon();
+const t = TRAITS.find((x) => x.id === id)!;
+const carriers = traitRows(lex.entries).find((r) => r.id === id)!.entries;
+
+const depth = depthOf(t.id);
+const before = needsOf(t);
+const after = buildsOn(t.id);
+const order = taught();
+const at = order.findIndex((x) => x.id === t.id);
+const prev = order[at - 1];
+const next = order[at + 1];
+
+// Nodes come sorted widest first, so the first one holding this trait is its
+// closure: the place in the lattice you land on by asking for this trait alone.
+const spot = lex.lattice.nodes.find((n) => n.intent.some((x) => x.id === t.id));
+const dragged = spot?.intent.filter((x) => x.id !== t.id) ?? [];
+---
+<Base lex={lex} view="traits" title={`${t.name} — 特徵 — 抽象結構詞庫`} description={t.plain}>
+  <article class="lad">
+    <header class="lad-head">
+      <p class="eyebrow">
+        特徵 · 第 {(depth ?? 0) + 1} 層 ·
+        {before.length ? ` 先要有 ${before.map((x) => x.name).join('、')}` : ' 不需要先懂別的'}
+      </p>
+      <h2 class="lad-plain">{t.plain}</h2>
+    </header>
+
+    <section class="rung">
+      <h3><i>01</i>一個情況</h3>
+      <p class="rung-p">{t.first}</p>
+    </section>
+
+    <section class="rung">
+      <h3><i>02</i>換一個看看</h3>
+      <div class="cmp">
+        <div class="cmp-side"><span class="cmp-tag">沒有</span><p>{t.pair.a}</p></div>
+        <div class="cmp-side cmp-side--on"><span class="cmp-tag">有</span><p>{t.pair.b}</p></div>
+      </div>
+      <p class="rung-p">{t.pair.point}</p>
+    </section>
+
+    <section class="rung">
+      <h3><i>03</i>怎麼認出來</h3>
+      <p class="tr-test">{t.test}</p>
+    </section>
+
+    <section class="rung">
+      <h3><i>04</i>到這裡才給它名字</h3>
+      <p class="lad-name">{t.name}<code>{t.id}</code></p>
+      <p class="rung-p">{t.why}</p>
+    </section>
+
+    <section class="rung">
+      <h3><i>05</i>抽象講法</h3>
+      <p class="rung-p">{t.gloss}</p>
+      <p class="lad-form">{t.form}</p>
+    </section>
+
+    <section class="rung">
+      <h3><i>06</i>帶著它的 {carriers.length} 個詞條</h3>
+      <ul class="tr-of">
+        {carriers.map((n) => (
+          <li data-entry={n}>
+            <a href={entryUrl(n)}><EntryName name={n} plain /></a>
+            <small>
+              {traitsOf(n)
+                .filter((x) => x.id !== t.id)
+                .map((x) => x.name)
+                .join('、') || '沒有別的特徵'}
+            </small>
+          </li>
+        ))}
+      </ul>
+      {spot && (
+        <p class="rung-p">
+          <a href={buildUrl(spot.id)}>在組裝裡從這一個開始</a>
+          {dragged.length > 0 && `，會連帶帶進 ${dragged.map((x) => x.name).join('、')}`}
+        </p>
+      )}
+    </section>
+
+    <section class="rung">
+      <h3><i>07</i>前後</h3>
+      <ul class="lad-rel">
+        {before.length === 0 && (
+          <li><span>先要有</span><em>沒有。這一個從日常經驗就能講完。</em></li>
+        )}
+        {before.map((x) => (
+          <li><span>先要有</span><a href={traitUrl(x.id)}>{x.plain}<i>{x.name}</i></a></li>
+        ))}
+        {after.map((x) => (
+          <li><span>接下來</span><a href={traitUrl(x.id)}>{x.plain}<i>{x.name}</i></a></li>
+        ))}
+        {after.length === 0 && <li><span>接下來</span><em>沒有別的特徵建在它上面。</em></li>}
+      </ul>
+    </section>
+
+    <footer class="entry-foot">
+      <span>第 {at + 1} / {order.length} 個，照由淺到深</span>
+      <span class="entry-nav">
+        {prev && <a href={traitUrl(prev.id)}>← {prev.name}</a>}
+        {next && <a href={traitUrl(next.id)}>{next.name} →</a>}
+      </span>
+    </footer>
+  </article>
+</Base>

@@ -1,0 +1,139 @@
+---
+import Base from '../../layouts/Base.astro';
+import EntryName from '../../components/EntryName.astro';
+import { loadLexicon, entryUrl, traitUrl, href } from '../../lib/lexicon';
+import { traitRows, traitsOf, carries, levels, beforeOf, needsOf, stranded } from '../../lib/traits';
+import { TRAITS } from '../../lib/overlays';
+
+const lex = await loadLexicon();
+const rows = traitRows(lex.entries);
+const countOf = new Map(rows.map((r) => [r.id, r.entries.length]));
+const sigs = lex.entries.map((e) => ({ e, traits: traitsOf(e.name) }));
+const total = sigs.reduce((n, s) => n + s.traits.length, 0);
+const solo = sigs.filter((s) => s.traits.length === 1).map((s) => s.e.name);
+const layers = levels();
+const loose = stranded();
+
+// Two orders over the same ten traits. The lattice says which traits never
+// occur without another; the ladder says which have to be learned first. Where
+// they agree, the implication is probably about the concept. Where they do not,
+// it is about these seventeen entries.
+const impl = lex.lattice.bundled.map((b) => {
+  const before = beforeOf(b.trait.id);
+  return { ...b, agrees: b.with.every((w) => before.some((x) => x.id === w.id)), before };
+});
+---
+<Base lex={lex} view="traits" title="特徵 — 抽象結構詞庫">
+  <div class="board">
+    <div class="board-head">
+      <h2>特徵，由淺到深</h2>
+      <p>
+        十個會重複出現的機制部件。「潛伏」「程度」這種名字第一次看沒有意義，
+        因為名字是壓縮，壓縮要先握著被壓的東西才划算。所以每個特徵都從一句白話開始，
+        名字排在第四級才出現。
+      </p>
+    </div>
+
+    {layers.map(({ n, traits }) => (
+      <section class="lv">
+        <h3>
+          第 {n + 1} 層
+          <small>{n === 0 ? '從日常經驗就能講完' : '要先有前面那層的某一個'}</small>
+        </h3>
+        <ul class="lv-list">
+          {traits.map((t) => (
+            <li>
+              <a href={traitUrl(t.id)}>
+                <span class="lv-plain">{t.plain}</span>
+                <span class="lv-name">{t.name}</span>
+                <span class="lv-n">{countOf.get(t.id)} / {lex.entries.length}</span>
+              </a>
+              {t.needs.length > 0 && (
+                <small class="lv-needs">先要有 {needsOf(t).map((x) => x.name).join('、')}</small>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+
+    {loose.length > 0 && (
+      <p class="empty">{loose.map((t) => t.name).join('、')} 排不進順序，`needs` 裡有循環。</p>
+    )}
+
+    <div class="gaps">
+      <h3>兩種順序對不對得上</h3>
+      <p>
+        上面是教的順序，我排的。<a href={href('/build/')}>組裝</a>那邊還有一個順序，
+        是從詞條表算出來的：某些特徵在這 17 個詞條裡從來不單獨出現。三條裡對上兩條。
+      </p>
+      <ul>
+        {impl.map((b) => (
+          <li>
+            <span class="pr-n">{b.trait.name} 一定帶著 {b.with.map((t) => t.name).join('、')}</span>
+            <small>{b.agrees ? '教的順序也是這樣' : `但它是從 ${b.before.map((t) => t.name).join('、')} 教的`}</small>
+          </li>
+        ))}
+      </ul>
+      <p class="gaps-foot">
+        對不上的那一條最有意思：可逆是從潛伏學會的，可是在這批詞條裡它每次都跟權重一起出現。
+        那條蘊涵講的是這 17 個詞條，不是這個概念，所以三條裡它最可能被下一個詞條推翻。
+      </p>
+    </div>
+
+    {solo.length > 0 && (
+      <div class="gaps">
+        <h3>只帶一個特徵</h3>
+        <p>這些詞條拆不出組合，它們差不多就是那個特徵本身，是這個詞庫裡最接近原語的東西。</p>
+        <ul>
+          {solo.map((n) => (
+            <li>
+              <a class="dom-entry" href={entryUrl(n)}><EntryName name={n} plain /></a>
+              <small>{traitsOf(n).map((t) => t.plain).join('')}</small>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    <details class="mx-fold">
+      <summary>整張表：{lex.entries.length} × {TRAITS.length}，{total} 個指派</summary>
+      <div class="mx-wrap">
+        <table class="mx">
+          <thead>
+            <tr>
+              <th class="mx-corner">詞條 ╲ 特徵</th>
+              {TRAITS.map((t) => (
+                <th><a href={traitUrl(t.id)} title={t.plain}>{t.name}</a></th>
+              ))}
+              <th class="mx-n">共</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sigs.map(({ e, traits }) => (
+              <tr data-entry={e.name}>
+                <th scope="row">
+                  <a href={entryUrl(e.name)}><EntryName name={e.name} plain /></a>
+                </th>
+                {TRAITS.map((t) => (
+                  <td class:list={[carries(e.name, t.id) && 'is-on']}>
+                    {carries(e.name, t.id) && <span class="mx-dot" title={t.name}></span>}
+                  </td>
+                ))}
+                <td class="mx-n">{traits.length}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr>
+              <th scope="row">帶這個特徵的詞條數</th>
+              {rows.map((r) => <td class="mx-n">{r.entries.length}</td>)}
+              <td class="mx-n">{total}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <p class="empty is-hidden" data-empty=".mx">沒有符合的詞條。</p>
+    </details>
+  </div>
+</Base>

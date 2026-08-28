@@ -25,6 +25,7 @@ const { parseEntry } = await server.ssrLoadModule('/src/lib/parse.ts');
 const { renderBlock, TENSION_LABELS } = await server.ssrLoadModule('/src/lib/structure.ts');
 const { buildGraph } = await server.ssrLoadModule('/src/lib/graph.ts');
 const { buildLattice } = await server.ssrLoadModule('/src/lib/lattice.ts');
+const { levels, stranded, beforeOf } = await server.ssrLoadModule('/src/lib/traits.ts');
 const { FAMILIES, DOMAIN_BUCKETS, SECTION_ROLES, STATIONS, TRAITS, ENTRY_TRAITS } =
   await server.ssrLoadModule('/src/lib/overlays.ts');
 
@@ -120,6 +121,26 @@ const universal = lattice.root.intent.map((t) => `${t.id} (${t.name})`);
 // while that signature is closed: some entry has to carry exactly it and no more.
 const homeless = entries.filter((e) => !lattice.byId.has(sigId(e.name))).map((e) => e.name);
 
+// The teaching order: `needs` in overlays.ts read as a graph. A trait with no
+// layer is sitting in a cycle. Where the two orders agree about an implication
+// it is probably about the concept; where they do not it is about these
+// seventeen entries, and that is the one to expect an entry to break.
+const layers = levels();
+const knownT = new Set(TRAITS.map((t) => t.id));
+const badNeeds = TRAITS.flatMap((t) =>
+  t.needs.filter((n) => !knownT.has(n) || n === t.id).map((n) => `${t.id} needs ${n}`)
+);
+const cyclic = stranded().map((t) => `${t.id} (${t.name})`);
+const agree = lattice.bundled.filter((b) =>
+  b.with.every((w) => beforeOf(b.trait.id).some((x) => x.id === w.id))
+);
+// A half-written ladder reads as a finished one, so every rung has to be there.
+const RUNGS = ['plain', 'first', 'test', 'name', 'why', 'gloss', 'form'];
+const holes = TRAITS.flatMap((t) => [
+  ...RUNGS.filter((k) => !t[k]?.trim()).map((k) => `${t.id}.${k}`),
+  ...['a', 'b', 'point'].filter((k) => !t.pair?.[k]?.trim()).map((k) => `${t.id}.pair.${k}`),
+]);
+
 const line = (k, v) => console.log(`  ${String(k).padEnd(22)} ${v}`);
 console.log(`\n${entries.length} entries · ${blocks} structure blocks\n`);
 console.log('nodes rendered');
@@ -153,6 +174,13 @@ for (const b of lattice.bundled) {
   line(`  ${b.trait.name} never alone`, `always with ${b.with.map((t) => t.name).join('、')}`);
 }
 
+console.log('\nteaching order (/traits/)');
+for (const l of layers) line(`  layer ${l.n + 1}`, l.traits.map((t) => t.name).join('、'));
+line(
+  'agrees with lattice',
+  `${agree.length} / ${lattice.bundled.length} implications are also prerequisites`
+);
+
 const warn = (label, list) => {
   if (list.length) console.log(`\n! ${label}\n    ${list.join('\n    ')}`);
 };
@@ -169,6 +197,9 @@ warn('trait ids used but not declared in TRAITS (src/lib/overlays.ts)', unknownI
 warn('trait carried by fewer than 2 entries, so it groups nothing', lonely);
 warn('trait carried by every entry, which leaves /build/ without a page', universal);
 warn('signature is not a place in the lattice, so its entry page cannot link there', homeless);
+warn('trait needs an id that is not another trait (src/lib/overlays.ts)', badNeeds);
+warn('trait has no layer, so needs has a cycle (src/lib/overlays.ts)', cyclic);
+warn('rung is empty, so the ladder has a hole (src/lib/overlays.ts)', holes);
 warn('examples with no domain tag', untagged.map((e) => `${e.name} (${e.examples.filter((x) => !x.domain).length})`));
 
 await server.close();

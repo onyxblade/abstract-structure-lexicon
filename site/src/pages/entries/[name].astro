@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import EntryName from '../../components/EntryName.astro';
 import Section from '../../components/Section.astro';
-import { loadLexicon, entryUrl, buildUrl, href } from '../../lib/lexicon';
+import { loadLexicon, entryUrl, buildUrl, traitUrl, href } from '../../lib/lexicon';
 import { isLinked } from '../../lib/graph';
 import { stationsOf } from '../../lib/stations';
 import { traitsOf, neighboursOf } from '../../lib/traits';
@@ -54,7 +54,7 @@ const num = (n: number) => String(n).padStart(2, '0');
       <ul class="tr-sig" aria-label="這個詞條由哪些特徵組成">
         {traits.map((t) => (
           <li>
-            <a class="tr" href={href(`/traits/#${t.id}`)} title={t.gloss}>
+            <a class="tr" href={traitUrl(t.id)} title={t.plain}>
               <i>{t.id}</i>{t.name}
             </a>
           </li>
