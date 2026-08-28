@@ -24,7 +24,9 @@ const server = await createServer({
 const { parseEntry } = await server.ssrLoadModule('/src/lib/parse.ts');
 const { renderBlock, TENSION_LABELS } = await server.ssrLoadModule('/src/lib/structure.ts');
 const { buildGraph } = await server.ssrLoadModule('/src/lib/graph.ts');
-const { FAMILIES, DOMAIN_BUCKETS } = await server.ssrLoadModule('/src/lib/overlays.ts');
+const { FAMILIES, DOMAIN_BUCKETS, SECTION_ROLES, STATIONS } = await server.ssrLoadModule(
+  '/src/lib/overlays.ts'
+);
 
 // Operators and whitespace are the renderer's job, so they are dropped before
 // comparing. What is left must match exactly on both sides.
@@ -81,6 +83,11 @@ const knownDomains = new Set(DOMAIN_BUCKETS.flatMap(([, ds]) => ds));
 const rawDomains = new Set(entries.flatMap((e) => e.examples.map((x) => x.domain).filter(Boolean)));
 const unbucketed = [...rawDomains].filter((d) => !knownDomains.has(d));
 const noTension = entries.filter((e) => !e.body.some((s) => TENSION_LABELS.includes(s.label)));
+// A label with no role falls through to 旁註 at the end of the entry page, which
+// is right for an actual aside and wrong for anything else, so say which.
+const labels = [...new Set(entries.flatMap((e) => e.body.map((s) => s.label)))];
+const unroled = labels.filter((l) => !SECTION_ROLES[l]);
+const miscast = TENSION_LABELS.filter((l) => SECTION_ROLES[l] !== 'tension');
 const untagged = entries.filter((e) => e.examples.some((x) => !x.domain));
 const graph = buildGraph(entries);
 
@@ -93,6 +100,11 @@ line('examples', entries.reduce((n, e) => n + e.examples.length, 0));
 line('domain tags', rawDomains.size);
 line('concept links', graph.shared.size);
 line('entries with 核心張力', `${entries.length - noTension.length} / ${entries.length}`);
+line('section labels', labels.length);
+for (const { name, roles } of STATIONS.filter((st) => st.roles.length)) {
+  const n = entries.filter((e) => e.body.some((s) => roles.includes(SECTION_ROLES[s.label]))).length;
+  line(`  站 ${name}`, `${n} / ${entries.length} entries`);
+}
 
 const warn = (label, list) => {
   if (list.length) console.log(`\n! ${label}\n    ${list.join('\n    ')}`);
@@ -102,6 +114,8 @@ warn('files not listed in the index', unlisted);
 warn('not in any family (src/lib/overlays.ts)', unfamilied);
 warn('domain tags in no bucket (src/lib/overlays.ts)', unbucketed);
 warn('no 核心張力 yet', noTension.map((e) => e.name));
+warn('section labels with no role (src/lib/overlays.ts), rendering as 旁註', unroled);
+warn('in TENSION_LABELS but not role tension (src/lib/overlays.ts)', miscast);
 warn('examples with no domain tag', untagged.map((e) => `${e.name} (${e.examples.filter((x) => !x.domain).length})`));
 
 await server.close();

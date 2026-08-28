@@ -5,12 +5,14 @@ import Structure from './Structure.astro';
 
 interface Props {
   section: Section;
+  /** Not the entry's backbone: smaller, on a hairline, sits in a grid. */
+  compact?: boolean;
 }
-const { section } = Astro.props;
+const { section, compact = false } = Astro.props;
 const tension = TENSION_LABELS.includes(section.label);
 const quote = section.label === '使用句';
 ---
-<section class:list={['sec', tension && 'sec--tension']}>
+<section class:list={['sec', tension && 'sec--tension', compact && 'sec--compact']}>
   <h3 class="sec-label">{section.label}</h3>
   {section.inline && <p class="prose">{section.inline}</p>}
   {section.blocks.map((b) =>

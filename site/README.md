@@ -25,7 +25,8 @@ npm run check     # TypeScript
 | 顏色、字體、間距 | `src/styles/tokens.css` |
 | 結構圖長什麼樣 | `src/styles/structure.css` |
 | 結構語法怎麼被認出來 | `src/lib/structure.ts` |
-| family 分組、領域分桶、停用詞 | `src/lib/overlays.ts` |
+| family 分組、領域分桶、停用詞、段落角色 | `src/lib/overlays.ts` |
+| 段落怎麼被分到站 | `src/lib/stations.ts` |
 | 詞條頁的排版 | `src/pages/entries/[name].astro` |
 
 ## 兩層資料
@@ -33,7 +34,30 @@ npm run check     # TypeScript
 `src/lib/parse.ts` 跟 `src/lib/structure.ts` 只反映 `../entries` 裡真的有的東西。
 
 `src/lib/overlays.ts` 全部是推斷出來的：詞條的 family 分組、例子領域的分桶、
-概念圖的停用詞。這些不在原始檔案裡，改它不會動到詞庫。
+概念圖的停用詞、段落標籤的角色。這些不在原始檔案裡，改它不會動到詞庫。
+
+## 詞條頁的骨架
+
+段落標籤是自由寫的：17 個詞條用掉 42 個不同標籤，其中 36 個只出現一次。照檔案
+順序平鋪的話，`結構` 跟 `數學類比` 看起來一樣重，整頁就變成一疊。
+
+所以每個標籤在 `src/lib/overlays.ts` 裡有一個角色，角色決定它落在哪一站。每個詞
+條都走同一條七站的路，沒填到的站會留在頂端的導覽列裡，用虛線框標成缺口。
+
+| 站 | 收哪些角色 | 目前有幾條詞條填了 |
+| --- | --- | --- |
+| 機制 | `mechanism` `retelling` | 17 / 17 |
+| 取捨 | `tension` | 13 / 17 |
+| 判準 | `criterion` | 9 / 17 |
+| 拆解 | `part` | 8 / 17 |
+| 旁註 | `aside` | 3 / 17 |
+| 例子 | 樣板欄位 | 17 / 17 |
+| 鄰接 | 樣板欄位 | 17 / 17 |
+
+`mechanism`（只有 `結構`）跟 `tension` 是詞條的骨幹，整欄寬。其餘角色是限定用的，
+排成並排的欄，因為它們彼此平行而不是接續。
+
+新標籤沒有角色時會落到 `旁註`，`npm run verify` 會把它列出來。
 
 ## 結構語法
 

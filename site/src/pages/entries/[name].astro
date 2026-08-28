@@ -4,6 +4,7 @@ import EntryName from '../../components/EntryName.astro';
 import Section from '../../components/Section.astro';
 import { loadLexicon, entryUrl } from '../../lib/lexicon';
 import { relatedTo, isLinked } from '../../lib/graph';
+import { stationsOf } from '../../lib/stations';
 
 export async function getStaticPaths() {
   const lex = await loadLexicon();
@@ -22,6 +23,13 @@ const { name, prev, next } = Astro.props;
 const e = lex.byName.get(name)!;
 const related = relatedTo(e, lex.graph);
 const family = lex.familyOf.get(e.name);
+
+// Same seven stations for every entry. The ones this entry does not fill stay
+// in the spine, greyed, so a gap reads as a gap rather than as an absence.
+const stations = stationsOf(e);
+const leads = new Map(stations.map((st) => [st.key, st.items.filter((p) => p.lead)]));
+const quals = new Map(stations.map((st) => [st.key, st.items.filter((p) => !p.lead)]));
+const num = (n: number) => String(n).padStart(2, '0');
 ---
 <Base
   lex={lex}
@@ -35,48 +43,72 @@ const family = lex.familyOf.get(e.name);
       <p class="eyebrow">{[family, e.status].filter(Boolean).join(' · ')}</p>
       <h2 class="entry-title"><EntryName name={e.name} /></h2>
       <p class="one-line">{e.oneLine}</p>
+      <nav class="spine" aria-label="這個詞條的段落">
+        {stations.map((st) =>
+          st.present ? (
+            <a class="sp" href={`#${st.key}`}><i>{num(st.n)}</i>{st.name}</a>
+          ) : (
+            <span class="sp is-gap" title="這個詞條還沒有這一段">{st.name}</span>
+          )
+        )}
+      </nav>
     </header>
 
-    {e.body.map((s) => <Section section={s} />)}
+    {stations.filter((st) => st.present).map((st) => (
+      <section class:list={['stn', `stn--${st.key}`]} id={st.key}>
+        <header class="stn-head">
+          <span class="stn-n">{num(st.n)}</span>
+          <h3 class="stn-name">{st.name}</h3>
+          <p class="stn-hint">{st.hint}</p>
+        </header>
 
-    <section class="sec">
-      <h3 class="sec-label">例子</h3>
-      <ul class="examples">
-        {e.examples.map((x) => (
-          <li>
-            <span class="ex-d">{x.domain}</span>
-            <span class="ex-t">{x.text}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
+        {leads.get(st.key)!.map((p) => <Section section={p.section} />)}
 
-    <section class="sec">
-      <h3 class="sec-label">相近概念</h3>
-      <ul class="cn-list">
-        {e.concepts.map((c) => (
-          <li>
-            {isLinked(c, lex.graph)
-              ? <a class="cn" href={`/?q=${encodeURIComponent(c)}`}>{c}</a>
-              : <span class="cn">{c}</span>}
-          </li>
-        ))}
-      </ul>
-    </section>
+        {/* One qualifier is not parallel to anything, so it stays full width. */}
+        {quals.get(st.key)!.length === 1 ? (
+          <Section section={quals.get(st.key)![0].section} compact />
+        ) : quals.get(st.key)!.length > 1 ? (
+          <div class="stn-grid">
+            {quals.get(st.key)!.map((p) => <Section section={p.section} compact />)}
+          </div>
+        ) : null}
 
-    {related.length > 0 && (
-      <section class="sec">
-        <h3 class="sec-label">相關詞條</h3>
-        <div class="rel">
-          {related.map((r) => (
-            <a href={entryUrl(r.name)}>
-              <b><EntryName name={r.name} plain /></b>
-              <small>共用 {r.why}</small>
-            </a>
-          ))}
-        </div>
+        {st.key === 'cases' && (
+          <ul class="examples">
+            {e.examples.map((x) => (
+              <li>
+                <span class="ex-d">{x.domain}</span>
+                <span class="ex-t">{x.text}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {st.key === 'near' && (
+          <Fragment>
+            <ul class="cn-list">
+              {e.concepts.map((c) => (
+                <li>
+                  {isLinked(c, lex.graph)
+                    ? <a class="cn" href={`/?q=${encodeURIComponent(c)}`}>{c}</a>
+                    : <span class="cn">{c}</span>}
+                </li>
+              ))}
+            </ul>
+            {related.length > 0 && (
+              <div class="rel">
+                {related.map((r) => (
+                  <a href={entryUrl(r.name)}>
+                    <b><EntryName name={r.name} plain /></b>
+                    <small>共用 {r.why}</small>
+                  </a>
+                ))}
+              </div>
+            )}
+          </Fragment>
+        )}
       </section>
-    )}
+    ))}
 
     <footer class="entry-foot">
       <span>entries/{e.file}</span>

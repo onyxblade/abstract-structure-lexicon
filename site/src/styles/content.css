@@ -50,8 +50,8 @@
 .card p { font-size: 0.8125rem; line-height: 1.75; color: var(--ink-2); font-weight: 300; }
 
 /* ---------- entry ---------- */
-.entry { max-width: 70ch; }
-.entry-head { padding-bottom: 26px; margin-bottom: 30px; border-bottom: 1px solid var(--line); }
+.entry { max-width: 92ch; }
+.entry-head { padding-bottom: 24px; margin-bottom: 34px; border-bottom: 1px solid var(--line); }
 .entry-title {
   font-family: var(--font-display);
   font-weight: 700;
@@ -62,7 +62,76 @@
 }
 .one-line { margin-top: 18px; font-size: 1.0625rem; line-height: 1.9; color: var(--ink); font-weight: 300; max-width: 44ch; }
 
-.sec { margin-bottom: 30px; }
+/* ---------- the entry spine ---------- */
+
+/* Seven stations, the same for every entry, so one unfolds in a fixed order
+   instead of in the order its sections happened to be written. A station this
+   entry does not fill stays in the list, dashed, and reads as a gap. */
+.spine { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 24px; }
+.sp {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  padding: 4px 11px;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  background: var(--surface);
+  color: var(--ink-2);
+}
+.sp i { font-style: normal; color: var(--flow); }
+a.sp:hover { border-color: var(--pole-a); color: var(--pole-a); }
+a.sp:hover i { color: var(--pole-a); }
+.sp.is-gap { border-style: dashed; background: none; color: var(--muted); }
+
+.stn { margin-bottom: 46px; scroll-margin-top: 12px; }
+.stn-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 12px;
+  padding-bottom: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.stn-n {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  color: var(--flow);
+}
+.stn-name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.125rem;
+  letter-spacing: 0.08em;
+}
+.stn-hint { margin-left: auto; font-size: 0.8125rem; font-weight: 300; color: var(--muted); }
+/* the one station where the entry has a side to take */
+.stn--cost .stn-name { color: var(--pole-b); }
+.stn--cost .stn-n { color: var(--pole-b); }
+
+/* Qualifying sections are parallel to each other, so they sit side by side
+   under the section they qualify rather than extending the column downward.
+   Columns rather than a grid: grid rows align to the tallest cell and these
+   are never the same height, which leaves a hole under the shorter one. */
+.stn-grid { columns: 300px 2; column-gap: 30px; margin-bottom: -22px; }
+
+.sec { margin-bottom: 26px; }
+.sec--compact {
+  margin: 0 0 22px;
+  padding-left: 15px;
+  border-left: 1px solid var(--line);
+  break-inside: avoid;
+}
+.sec--compact > .sec-label { color: var(--flow); margin-bottom: 10px; }
+.sec--compact > .sec-label::after { display: none; }
+.sec--compact .prose { max-width: none; }
+
+.cn-list + .rel { margin-top: 16px; }
+
 .sec-label {
   font-family: var(--font-mono);
   font-size: 0.6875rem;

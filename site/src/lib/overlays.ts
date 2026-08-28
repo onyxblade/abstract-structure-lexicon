@@ -35,3 +35,86 @@ export const DOMAIN_BUCKETS: [string, string[]][] = [
 export const STOPWORDS = new Set([
   'of', 'the', 'to', 'for', 'as', 'and', 'a', 'an', 'in', 'on', 'like', 'vs', 'anti', 'theory',
 ]);
+
+/**
+ * What each section label is *doing*.
+ *
+ * Section labels in the entries are free-form and mostly one-offs: 42 distinct
+ * labels across 17 entries, 36 of them used exactly once. Rendered in file
+ * order they all look equally important, so 結構 and 數學類比 carry the same
+ * weight and the page reads as a pile. A role says which station of the entry
+ * a section belongs to, and the entry page lays itself out by station instead.
+ *
+ * `mechanism` is the entry's own flow. `retelling` is that same flow said again
+ * in another domain or another direction, so it renders subordinate to it
+ * rather than beside it.
+ */
+export type Role = 'mechanism' | 'retelling' | 'tension' | 'criterion' | 'part' | 'aside';
+
+export const SECTION_ROLES: Record<string, Role> = {
+  結構: 'mechanism',
+
+  恢復結構: 'retelling',
+  民主視角: 'retelling',
+  '程序 / AI 版本': 'retelling',
+  模型版本: 'retelling',
+  人類版本: 'retelling',
+  哲學版本: 'retelling',
+  程序版本: 'retelling',
+  多觀點版本: 'retelling',
+  數學版本: 'retelling',
+  數學類比: 'retelling',
+  商業流程: 'retelling',
+  傳播結構: 'retelling',
+  同物異解: 'retelling',
+  '與偏向—盲點的關係': 'retelling',
+
+  核心張力: 'tension',
+  失配: 'tension',
+  失敗模式: 'tension',
+  典型失敗: 'tension',
+  限制: 'tension',
+  底層限制: 'tension',
+
+  核心判準: 'criterion',
+  核心修正: 'criterion',
+  核心洞察: 'criterion',
+  使用原則: 'criterion',
+  使用句: 'criterion',
+  補償方式: 'criterion',
+  盲點掃描: 'criterion',
+
+  常見參數: 'part',
+  傳播參數: 'part',
+  常見增權因子: 'part',
+  常見槓桿: 'part',
+  簡化模型: 'part',
+  三層區分: 'part',
+  兩種不知道: 'part',
+  分類: 'part',
+  客觀層級: 'part',
+  層級: 'part',
+  認識論位置: 'part',
+
+  價值: 'aside',
+  詞庫賣點: 'aside',
+  生物基礎: 'aside',
+};
+
+/**
+ * The spine every entry page walks through, in this order. Entries fill some
+ * stations and not others, and the ones they skip stay visible as gaps — the
+ * same move the tensions and domains views already make.
+ *
+ * `roles` empty means the station is not built from body sections: 例子 and
+ * 鄰接 come from the template fields and always exist.
+ */
+export const STATIONS: { key: string; name: string; hint: string; roles: Role[] }[] = [
+  { key: 'how', name: '機制', hint: '結構本身，以及它在別的地方重講一次', roles: ['mechanism', 'retelling'] },
+  { key: 'cost', name: '取捨', hint: '兩端各自失敗在哪裡', roles: ['tension'] },
+  { key: 'tell', name: '判準', hint: '怎麼分辨，怎麼用', roles: ['criterion'] },
+  { key: 'parts', name: '拆解', hint: '它由哪些具名的部分組成', roles: ['part'] },
+  { key: 'note', name: '旁註', hint: '不屬於結構本身的補充', roles: ['aside'] },
+  { key: 'cases', name: '例子', hint: '同一結構在不同領域的樣子', roles: [] },
+  { key: 'near', name: '鄰接', hint: '相近的概念，以及共用概念的詞條', roles: [] },
+];
