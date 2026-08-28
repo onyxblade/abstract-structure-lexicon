@@ -1,5 +1,5 @@
 ---
-import type { Lexicon } from '../lib/lexicon';
+import { href, type Lexicon } from '../lib/lexicon';
 
 interface Props {
   lex: Lexicon;
@@ -12,7 +12,7 @@ const { entries, examples, links } = lex.counts;
   <div class="mast-in">
     <div>
       <p class="eyebrow">abstract structure lexicon</p>
-      <h1><a href="/">抽象結構詞庫</a></h1>
+      <h1><a href={href("/")}>抽象結構詞庫</a></h1>
       <p class="lede">可跨領域套用的結構。每個詞條有一句話定義、一組流程、跨領域的例子，以及它自己的張力。</p>
     </div>
     <div class="mast-side">
@@ -30,9 +30,9 @@ const { entries, examples, links } = lex.counts;
   </div>
   <div class="mast-in">
     <nav class="views">
-      <a href="/" aria-current={view === 'entries' ? 'page' : undefined}>詞條</a>
-      <a href="/domains/" aria-current={view === 'domains' ? 'page' : undefined}>領域</a>
-      <a href="/tensions/" aria-current={view === 'tensions' ? 'page' : undefined}>張力</a>
+      <a href={href("/")} aria-current={view === 'entries' ? 'page' : undefined}>詞條</a>
+      <a href={href("/domains/")} aria-current={view === 'domains' ? 'page' : undefined}>領域</a>
+      <a href={href("/tensions/")} aria-current={view === 'tensions' ? 'page' : undefined}>張力</a>
       <button type="button" class="rail-toggle" id="railToggle">目錄</button>
     </nav>
   </div>

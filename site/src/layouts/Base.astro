@@ -101,7 +101,8 @@ const {
       let hay: Record<string, string> | null = null;
 
       async function index() {
-        if (!hay) hay = await fetch('/search.json').then((r) => r.json());
+        const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+        if (!hay) hay = await fetch(`${base}/search.json`).then((r) => r.json());
         return hay!;
       }
 

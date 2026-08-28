@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import EntryName from '../../components/EntryName.astro';
 import Section from '../../components/Section.astro';
-import { loadLexicon, entryUrl } from '../../lib/lexicon';
+import { loadLexicon, entryUrl, href } from '../../lib/lexicon';
 import { relatedTo, isLinked } from '../../lib/graph';
 import { stationsOf } from '../../lib/stations';
 
@@ -90,7 +90,7 @@ const num = (n: number) => String(n).padStart(2, '0');
               {e.concepts.map((c) => (
                 <li>
                   {isLinked(c, lex.graph)
-                    ? <a class="cn" href={`/?q=${encodeURIComponent(c)}`}>{c}</a>
+                    ? <a class="cn" href={href(`/?q=${encodeURIComponent(c)}`)}>{c}</a>
                     : <span class="cn">{c}</span>}
                 </li>
               ))}

@@ -89,4 +89,8 @@ export function byFamily(lex: Lexicon): [string, Entry[]][] {
   return groups.filter(([, es]) => es.length);
 }
 
-export const entryUrl = (name: string) => `/entries/${encodeURIComponent(name)}/`;
+/** Every in-site link goes through here so the Pages base prefix is applied once. */
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
+export const href = (path: string) => `${BASE}${path}`;
+
+export const entryUrl = (name: string) => href(`/entries/${encodeURIComponent(name)}/`);

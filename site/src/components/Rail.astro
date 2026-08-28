@@ -1,5 +1,5 @@
 ---
-import { byFamily, entryUrl, type Lexicon } from '../lib/lexicon';
+import { byFamily, entryUrl, href, type Lexicon } from '../lib/lexicon';
 import EntryName from './EntryName.astro';
 
 interface Props {
@@ -21,7 +21,7 @@ const groups = byFamily(lex);
     aria-label="搜尋詞庫"
     autocomplete="off"
   />
-  <a class:list={['all-btn', atRoot && 'is-on']} href="/">全部詞條</a>
+  <a class:list={['all-btn', atRoot && 'is-on']} href={href("/")}>全部詞條</a>
   <div id="index">
     {groups.map(([fam, es]) => (
       <section class="fam" data-group>
