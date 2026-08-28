@@ -24,9 +24,8 @@ const server = await createServer({
 const { parseEntry } = await server.ssrLoadModule('/src/lib/parse.ts');
 const { renderBlock, TENSION_LABELS } = await server.ssrLoadModule('/src/lib/structure.ts');
 const { buildGraph } = await server.ssrLoadModule('/src/lib/graph.ts');
-const { FAMILIES, DOMAIN_BUCKETS, SECTION_ROLES, STATIONS } = await server.ssrLoadModule(
-  '/src/lib/overlays.ts'
-);
+const { FAMILIES, DOMAIN_BUCKETS, SECTION_ROLES, STATIONS, TRAITS, ENTRY_TRAITS } =
+  await server.ssrLoadModule('/src/lib/overlays.ts');
 
 // Operators and whitespace are the renderer's job, so they are dropped before
 // comparing. What is left must match exactly on both sides.
@@ -90,6 +89,19 @@ const unroled = labels.filter((l) => !SECTION_ROLES[l]);
 const miscast = TENSION_LABELS.filter((l) => SECTION_ROLES[l] !== 'tension');
 const untagged = entries.filter((e) => e.examples.some((x) => !x.domain));
 const graph = buildGraph(entries);
+// Traits are what the neighbour list on an entry page is built from, so an
+// entry with none is invisible to every other entry, and a trait held by one
+// entry relates nothing to anything.
+const names = new Set(entries.map((e) => e.name));
+const traitsOf = (n) => ENTRY_TRAITS[n] ?? [];
+const carriers = (id) => entries.filter((e) => traitsOf(e.name).includes(id));
+const traitless = entries.filter((e) => !traitsOf(e.name).length).map((e) => e.name);
+const ghosts = Object.keys(ENTRY_TRAITS).filter((n) => !names.has(n));
+const knownTraits = new Set(TRAITS.map((t) => t.id));
+const unknownIds = [
+  ...new Set(Object.values(ENTRY_TRAITS).flat().filter((id) => !knownTraits.has(id))),
+];
+const lonely = TRAITS.filter((t) => carriers(t.id).length < 2).map((t) => `${t.id} (${t.name})`);
 
 const line = (k, v) => console.log(`  ${String(k).padEnd(22)} ${v}`);
 console.log(`\n${entries.length} entries · ${blocks} structure blocks\n`);
@@ -106,6 +118,15 @@ for (const { name, roles } of STATIONS.filter((st) => st.roles.length)) {
   line(`  站 ${name}`, `${n} / ${entries.length} entries`);
 }
 
+console.log('\ntraits');
+line('traits declared', TRAITS.length);
+line('trait assignments', Object.values(ENTRY_TRAITS).flat().length);
+line(
+  'traits per entry',
+  `${(Object.values(ENTRY_TRAITS).flat().length / entries.length).toFixed(1)} average`
+);
+for (const t of TRAITS) line(`  ${t.id} ${t.name}`, `${carriers(t.id).length} / ${entries.length} entries`);
+
 const warn = (label, list) => {
   if (list.length) console.log(`\n! ${label}\n    ${list.join('\n    ')}`);
 };
@@ -116,6 +137,10 @@ warn('domain tags in no bucket (src/lib/overlays.ts)', unbucketed);
 warn('no 核心張力 yet', noTension.map((e) => e.name));
 warn('section labels with no role (src/lib/overlays.ts), rendering as 旁註', unroled);
 warn('in TENSION_LABELS but not role tension (src/lib/overlays.ts)', miscast);
+warn('no trait yet (src/lib/overlays.ts), so nothing links to it', traitless);
+warn('in ENTRY_TRAITS but not an entry (src/lib/overlays.ts)', ghosts);
+warn('trait ids used but not declared in TRAITS (src/lib/overlays.ts)', unknownIds);
+warn('trait carried by fewer than 2 entries, so it groups nothing', lonely);
 warn('examples with no domain tag', untagged.map((e) => `${e.name} (${e.examples.filter((x) => !x.domain).length})`));
 
 await server.close();

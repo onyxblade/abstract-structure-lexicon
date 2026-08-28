@@ -289,3 +289,111 @@ a.cn:hover { background: var(--wash-a); }
   .dom li,
   .gaps li { grid-template-columns: 1fr; }
 }
+
+/* ---------- traits ---------- */
+
+/* An entry's signature: which recurring parts it is built from. It sits above
+   the spine because it describes the whole entry, where the spine describes
+   where things are on the page. Filled, so the two chip rows do not read as
+   one long list. */
+.tr-sig { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 20px; list-style: none; }
+.tr {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  font-size: 0.75rem;
+  padding: 4px 11px;
+  border: 1px solid transparent;
+  border-radius: 100px;
+  background: var(--wash-a);
+  color: var(--pole-a);
+}
+.tr i { font-style: normal; font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: 0.08em; opacity: 0.65; }
+.tr:hover { border-color: var(--pole-a); }
+
+.board--wide { max-width: 92ch; }
+.tr-lead { margin-bottom: 18px; font-size: 0.875rem; font-weight: 300; color: var(--muted); max-width: 62ch; }
+.tr-lead code { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--ink-2); }
+
+/* entry × trait. The one view where composition is visible: a row is an
+   entry's signature, a column is a trait's extension. */
+.mx-wrap { overflow-x: auto; margin-bottom: 40px; }
+.mx { border-collapse: collapse; font-size: 0.8125rem; }
+.mx th,
+.mx td { border: 1px solid var(--line-soft); padding: 0; }
+.mx thead th { height: 96px; padding: 10px 0; vertical-align: bottom; background: var(--surface); font-weight: 500; }
+/* CJK reads top-down in vertical-rl, so the heads need no rotation. */
+.mx thead th a { writing-mode: vertical-rl; color: var(--ink-2); letter-spacing: 0.12em; }
+.mx thead th a:hover { color: var(--pole-a); }
+.mx-corner {
+  padding: 10px 14px 10px 12px !important;
+  text-align: left;
+  vertical-align: bottom;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.mx tbody th,
+.mx tfoot th { padding: 7px 14px 7px 12px; text-align: left; font-weight: 400; white-space: nowrap; background: var(--surface); }
+.mx tbody th { font-size: 0.875rem; }
+.mx tbody th a:hover { color: var(--pole-a); }
+.mx tfoot th { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; color: var(--muted); }
+.mx td { width: 40px; text-align: center; vertical-align: middle; }
+.mx td.is-on { background: var(--wash-a); }
+.mx-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--pole-a); }
+.mx-n { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+.mx tfoot .mx-n { color: var(--flow); }
+.mx tbody tr:hover th,
+.mx tbody tr:hover td { background: var(--surface-2); }
+.mx tbody tr:hover td.is-on { background: var(--wash-a); }
+
+.tr-card { margin-bottom: 34px; scroll-margin-top: 16px; }
+.tr-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.tr-id { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.12em; color: var(--flow); }
+.tr-card-head h3 { font-family: var(--font-display); font-weight: 500; font-size: 1.125rem; letter-spacing: 0.08em; }
+.tr-n { margin-left: auto; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+.tr-gloss { font-size: 0.9375rem; line-height: 1.85; color: var(--ink); max-width: 60ch; }
+/* the question you ask an entry to decide whether it carries the trait */
+.tr-test { margin: 4px 0 14px; font-size: 0.875rem; color: var(--muted); max-width: 60ch; }
+.tr-test::before { content: "? "; font-family: var(--font-mono); color: var(--pole-b); }
+.tr-of { list-style: none; }
+.tr-of li {
+  display: grid;
+  grid-template-columns: minmax(150px, max-content) 1fr;
+  gap: 4px 20px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line-soft);
+  align-items: baseline;
+}
+.tr-of li:first-child { border-top: 0; }
+.tr-of a { font-size: 0.875rem; }
+.tr-of a:hover { color: var(--pole-a); }
+.tr-of small { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.04em; color: var(--muted); }
+
+.prs li { grid-template-columns: 1fr max-content; gap: 4px 20px; }
+.pr-n { font-size: 0.875rem; color: var(--ink-2); }
+.pr-n a:hover { color: var(--pole-a); }
+.pr-x { margin: 0 8px; font-family: var(--font-mono); color: var(--flow); }
+.pr-t { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.06em; color: var(--pole-a); }
+
+@media (max-width: 900px) {
+  .tr-of li,
+  .prs li { grid-template-columns: 1fr; }
+}
+
+/* The name column stays put when the matrix scrolls sideways, which is the
+   only way the table is readable on a narrow screen. A border on a sticky cell
+   scrolls away with the cell, so the edge is a shadow. */
+.mx-corner,
+.mx tbody th,
+.mx tfoot th { position: sticky; left: 0; z-index: 1; box-shadow: 1px 0 0 var(--line); }

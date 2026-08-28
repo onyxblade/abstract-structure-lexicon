@@ -3,7 +3,7 @@ import { href, type Lexicon } from '../lib/lexicon';
 
 interface Props {
   lex: Lexicon;
-  view: 'entries' | 'domains' | 'tensions';
+  view: 'entries' | 'traits' | 'domains' | 'tensions';
 }
 const { lex, view } = Astro.props;
 const { entries, examples, links } = lex.counts;
@@ -31,6 +31,7 @@ const { entries, examples, links } = lex.counts;
   <div class="mast-in">
     <nav class="views">
       <a href={href("/")} aria-current={view === 'entries' ? 'page' : undefined}>詞條</a>
+      <a href={href("/traits/")} aria-current={view === 'traits' ? 'page' : undefined}>特徵</a>
       <a href={href("/domains/")} aria-current={view === 'domains' ? 'page' : undefined}>領域</a>
       <a href={href("/tensions/")} aria-current={view === 'tensions' ? 'page' : undefined}>張力</a>
       <button type="button" class="rail-toggle" id="railToggle">目錄</button>

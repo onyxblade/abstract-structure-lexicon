@@ -1,8 +1,12 @@
-// The concept graph.
+// The concept-tag graph.
 //
 // 相近概念 tags are multi-word English phrases, so exact matches between entries
-// are rare. Tokenising to words instead turns a handful of coincidences into a
-// usable graph, and the shared tokens double as the reason for each link.
+// are rare. Tokenising to words instead tells us which tags are shared at all,
+// which is what decides whether a tag renders as a link into search.
+//
+// This used to rank related entries too. It no longer does: two tags containing
+// the same word is a coincidence, not a decision, so the neighbour list on an
+// entry page is built from declared traits instead (src/lib/traits.ts).
 
 import type { Entry } from './parse';
 import { STOPWORDS } from './overlays';
@@ -34,31 +38,6 @@ export function buildGraph(entries: Entry[]): Graph {
   return { index, shared };
 }
 
-export interface Related {
-  name: string;
-  why: string;
-}
-
-export function relatedTo(e: Entry, g: Graph, limit = 4): Related[] {
-  const score = new Map<string, number>();
-  const why = new Map<string, Set<string>>();
-  for (const c of e.concepts) {
-    for (const t of tokenise(c)) {
-      if (!g.shared.has(t)) continue;
-      for (const other of g.index.get(t)!) {
-        if (other === e.name) continue;
-        score.set(other, (score.get(other) ?? 0) + 1);
-        if (!why.has(other)) why.set(other, new Set());
-        why.get(other)!.add(t);
-      }
-    }
-  }
-  return [...score]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, limit)
-    .map(([name]) => ({ name, why: [...why.get(name)!].slice(0, 3).join(', ') }));
-}
-
-/** Does this tag participate in any link? Unlinked tags render as plain text. */
+/** Does this tag appear in another entry too? Unshared tags render as plain text. */
 export const isLinked = (concept: string, g: Graph) =>
   tokenise(concept).some((t) => g.shared.has(t));
