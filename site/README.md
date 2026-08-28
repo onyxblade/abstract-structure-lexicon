@@ -3,7 +3,7 @@
 詞庫的網頁版。讀 `../entries/*.md`，不寫回去。
 
 ```
-npm run dev       # 開發，改 ../entries 會即時反映
+npm run dev       # 開發，改 ../entries 會即時反映（網址帶 /abstract-structure-lexicon/）
 npm run verify    # 檢查渲染，並列出詞庫目前的缺口
 npm run build     # 靜態站 → dist/
 npm run check     # TypeScript

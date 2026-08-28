@@ -12,7 +12,7 @@ merely 的抽象結構 / pattern 詞庫。網頁版：<https://onyxblade.github.
 ```
 cd site
 npm install
-npm run dev       # http://localhost:4321，改 entries/ 會即時反映
+npm run dev       # http://localhost:4321/abstract-structure-lexicon/，改 entries/ 會即時反映
 npm run verify    # 檢查每個結構區塊都能被解析
 npm run build     # 產生靜態站到 site/dist
 ```
