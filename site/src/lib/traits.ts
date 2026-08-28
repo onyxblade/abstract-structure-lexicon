@@ -66,24 +66,3 @@ export function neighboursOf(e: Entry, all: Entry[], limit = 4): Overlap[] {
     .slice(0, limit)
     .map(({ name, shared }) => ({ name, shared }));
 }
-
-export interface Pair {
-  a: string;
-  b: string;
-  shared: TraitDef[];
-}
-
-/** Every pair of entries sharing at least `min` traits, closest first. */
-export function pairs(entries: Entry[], min = 2): Pair[] {
-  const out: Pair[] = [];
-  for (let i = 0; i < entries.length; i++) {
-    for (let j = i + 1; j < entries.length; j++) {
-      const a = entries[i].name;
-      const b = entries[j].name;
-      const set = new Set(idsOf(b));
-      const shared = traitsOf(a).filter((t) => set.has(t.id));
-      if (shared.length >= min) out.push({ a, b, shared });
-    }
-  }
-  return out.sort((x, y) => y.shared.length - x.shared.length);
-}

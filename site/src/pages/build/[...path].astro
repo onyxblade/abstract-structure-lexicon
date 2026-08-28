@@ -1,0 +1,146 @@
+---
+import Base from '../../layouts/Base.astro';
+import EntryName from '../../components/EntryName.astro';
+import { loadLexicon, entryUrl, buildUrl, href } from '../../lib/lexicon';
+import { TRAITS } from '../../lib/overlays';
+
+// One page per place in the lattice. A page load per step is the point: the
+// browser's back button is the undo, and every state has its own URL.
+export async function getStaticPaths() {
+  const lex = await loadLexicon();
+  return lex.lattice.nodes.map((n) => ({
+    params: { path: n.id || undefined },
+    props: { id: n.id },
+  }));
+}
+
+const { id } = Astro.props as { id: string };
+const lex = await loadLexicon();
+const here = lex.lattice.byId.get(id)!;
+const atRoot = here.id === lex.lattice.root.id;
+const held = here.intent.map((t) => t.name).join('＋');
+// Few enough entries left that a one-line definition each still fits on one screen.
+const arrived = here.extent.length <= 4;
+---
+<Base lex={lex} view="build" title={`${held || '從零開始'} — 組裝 — 抽象結構詞庫`}>
+  <div class="board">
+    {atRoot && (
+      <div class="board-head">
+        <h2>組裝</h2>
+        <p>
+          <a href={href('/traits/')}>特徵一覽</a>把 17 × 10 一次攤開。這頁反過來走：
+          手上先什麼都沒有，一次只加一個特徵，看還剩下哪些詞條。加到底就是單一詞條。
+        </p>
+      </div>
+    )}
+
+    <div class="bd-now">
+      <p class="bd-held">
+        {here.intent.length ? (
+          <Fragment>
+            手上有
+            <span class="bd-chips">
+              {here.intent.map((t) => (
+                <a class="tr" href={href(`/traits/#${t.id}`)} title={t.gloss}><i>{t.id}</i>{t.name}</a>
+              ))}
+            </span>
+          </Fragment>
+        ) : (
+          <span class="bd-zero">手上還沒有任何特徵。</span>
+        )}
+      </p>
+      <span class="bd-depth">
+        {here.intent.length} / {TRAITS.length}
+        {!atRoot && <a class="bd-reset" href={buildUrl('')}>從頭來</a>}
+      </span>
+    </div>
+
+    {/* At the root the list would be every entry, which the sidebar is already
+        showing. Nothing has been decided yet, so there is nothing to read. */}
+    {atRoot ? (
+      <p class="bd-all">{here.extent.length} 個詞條都還在。加一個特徵，才開始有東西被篩掉。</p>
+    ) : (
+      <section class="bd-hits">
+        <h3>{here.extent.length} 個詞條同時帶著這些</h3>
+        <ul>
+          {here.extent.map((n) => (
+            <li data-entry={n}>
+              <a class="dom-entry" href={entryUrl(n)}><EntryName name={n} plain /></a>
+              {arrived && <small>{lex.byName.get(n)?.oneLine}</small>}
+            </li>
+          ))}
+        </ul>
+        <p class="empty is-hidden" data-empty=".bd-hits">搜尋把這一格的詞條都濾掉了。</p>
+      </section>
+    )}
+
+    <section class="bd-go">
+      <h3>再加一個</h3>
+      {here.down.length ? (
+        <Fragment>
+          <ul class="bd-moves">
+            {here.down.map((s) => (
+              <li>
+                <a class="bd-move" href={buildUrl(s.to)}>
+                  <span class="bd-sign">＋</span>
+                  <span class="bd-move-t">{s.moved.map((t) => t.name).join('、')}</span>
+                  <span class="bd-move-n">剩 {s.n}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          {here.down.some((s) => s.moved.length > 1) && (
+            <p class="bd-note">
+              兩個名字的那一步是一起進來的：詞庫裡沒有只帶其中一個的詞條，所以它們分不開。
+            </p>
+          )}
+        </Fragment>
+      ) : (
+        <p class="bd-zero">加不下去了。再多任何一個特徵，就沒有詞條符合。</p>
+      )}
+    </section>
+
+    {here.up.length > 0 && (
+      <section class="bd-go bd-go--up">
+        <h3>拿掉一個</h3>
+        <ul class="bd-moves">
+          {here.up.map((s) => (
+            <li>
+              <a class="bd-move" href={buildUrl(s.to)}>
+                <span class="bd-sign bd-sign--up">−</span>
+                <span class="bd-move-t">{s.moved.map((t) => t.name).join('、')}</span>
+                <span class="bd-move-n">回到 {s.n}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {atRoot && lex.lattice.bundled.length > 0 && (
+      <div class="gaps">
+        <h3>不會單獨出現的特徵</h3>
+        <p>
+          上面是 {here.down.length} 個選項，不是十個。這幾個特徵在詞庫裡沒有單獨帶著它的詞條，
+          所以只能跟著前提一起進來。這是這張表自己算出來的，不是誰規定的，
+          哪天寫進一個反例就會消失。
+        </p>
+        <ul>
+          {lex.lattice.bundled.map((b) => (
+            <li>
+              <span class="pr-n">{b.trait.name}</span>
+              <small>一定同時帶著 {b.with.map((t) => t.name).join('、')}</small>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    {atRoot && (
+      <p class="bd-foot">
+        走得完的：整座格子有 {lex.lattice.nodes.length} 個位置。
+        每個位置都是一組特徵，加上剛好帶齊那組特徵的所有詞條。
+      </p>
+    )}
+  </div>
+</Base>

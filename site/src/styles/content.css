@@ -310,8 +310,12 @@ a.cn:hover { background: var(--wash-a); }
 }
 .tr i { font-style: normal; font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: 0.08em; opacity: 0.65; }
 .tr:hover { border-color: var(--pole-a); }
+/* Not a trait: a way out of the entry into the lattice standing on this
+   combination. Coloured as the other pole so the row does not read as eleven
+   traits. */
+.tr--go { background: var(--wash-b); color: var(--pole-b); }
+.tr--go:hover { border-color: var(--pole-b); }
 
-.board--wide { max-width: 92ch; }
 .tr-lead { margin-bottom: 18px; font-size: 0.875rem; font-weight: 300; color: var(--muted); max-width: 62ch; }
 .tr-lead code { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--ink-2); }
 
@@ -397,3 +401,113 @@ a.cn:hover { background: var(--wash-a); }
 .mx-corner,
 .mx tbody th,
 .mx tfoot th { position: sticky; left: 0; z-index: 1; box-shadow: 1px 0 0 var(--line); }
+
+/* ---------- build: the lattice, one trait at a time ---------- */
+
+/* Where you are standing. Everything else on the page is one list of entries
+   and one row of moves, so this line is the only state to keep in your head. */
+.bd-now {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px 20px;
+  padding-bottom: 14px;
+  margin-bottom: 26px;
+  border-bottom: 1px solid var(--line);
+}
+.bd-held {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 300;
+  color: var(--muted);
+}
+.bd-chips { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.bd-zero { font-size: 0.875rem; font-weight: 300; color: var(--muted); }
+.bd-depth {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--flow);
+}
+.bd-reset { color: var(--muted); }
+.bd-reset:hover { color: var(--pole-b); }
+
+.bd-hits { margin-bottom: 34px; }
+.bd-hits h3,
+.bd-go h3 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+}
+.bd-hits h3::after,
+.bd-go h3::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.bd-hits ul { list-style: none; display: flex; flex-direction: column; gap: 1px; }
+.bd-hits li {
+  display: grid;
+  grid-template-columns: minmax(150px, max-content) 1fr;
+  gap: 4px 20px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line-soft);
+  align-items: baseline;
+}
+.bd-hits li:first-child { border-top: 0; }
+.bd-hits small { font-size: 0.8125rem; line-height: 1.7; font-weight: 300; color: var(--muted); }
+
+/* A move is a link to another page, so it is built to be clicked. Down is the
+   holding pole, up the releasing one, the same two colours the rest of the
+   site uses for the two ends of a tension. */
+.bd-go { margin-bottom: 30px; }
+.bd-moves { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.bd-move {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 11px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  transition: background 0.15s, border-color 0.15s;
+}
+.bd-move:hover { background: var(--wash-a); border-color: var(--pole-a); }
+.bd-go--up .bd-move:hover { background: var(--wash-b); border-color: var(--pole-b); }
+.bd-sign { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--pole-a); }
+.bd-sign--up { color: var(--pole-b); }
+.bd-move-t { font-size: 0.875rem; color: var(--ink); }
+.bd-move-n { margin-left: auto; font-family: var(--font-mono); font-size: 0.6875rem; color: var(--flow); }
+
+.bd-note,
+.bd-foot { margin-top: 14px; max-width: 58ch; font-size: 0.8125rem; line-height: 1.8; font-weight: 300; color: var(--muted); }
+.bd-foot { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line-soft); }
+
+/* The whole table is still worth having, just not worth opening by default. */
+.mx-fold { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); }
+.mx-fold > summary {
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+}
+.mx-fold > summary::-webkit-details-marker { display: none; }
+.mx-fold > summary::before { content: "▸ "; color: var(--flow); }
+.mx-fold[open] > summary::before { content: "▾ "; }
+.mx-fold > summary:hover { color: var(--pole-a); }
+.mx-fold .mx-wrap { margin-top: 18px; margin-bottom: 8px; }
+
+@media (max-width: 900px) {
+  .bd-hits li { grid-template-columns: 1fr; }
+}
+.bd-all { margin-bottom: 34px; font-size: 0.875rem; font-weight: 300; color: var(--muted); }

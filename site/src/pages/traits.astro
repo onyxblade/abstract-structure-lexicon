@@ -1,72 +1,29 @@
 ---
 import Base from '../layouts/Base.astro';
 import EntryName from '../components/EntryName.astro';
-import { loadLexicon, entryUrl } from '../lib/lexicon';
-import { traitRows, traitsOf, carries, pairs } from '../lib/traits';
+import { loadLexicon, entryUrl, href } from '../lib/lexicon';
+import { traitRows, traitsOf, carries } from '../lib/traits';
 import { TRAITS } from '../lib/overlays';
 
 const lex = await loadLexicon();
 const rows = traitRows(lex.entries);
-const close = pairs(lex.entries, 2);
 const sigs = lex.entries.map((e) => ({ e, traits: traitsOf(e.name) }));
 const total = sigs.reduce((n, s) => n + s.traits.length, 0);
 const solo = sigs.filter((s) => s.traits.length === 1).map((s) => s.e.name);
 ---
 <Base lex={lex} view="traits" title="特徵一覽 — 抽象結構詞庫">
-  <div class="board board--wide">
+  <div class="board">
     <div class="board-head">
       <h2>特徵一覽</h2>
       <p>
         詞條之間幾乎沒有「A 是一種 B」，17 個詞條裡只有一組，而且是寫成例子的。
-        它們共用的是零件。這頁把零件拆出來：一個特徵是一個會重複出現的機制部件，
-        一個詞條就是它帶的那幾個特徵的組合。
+        它們共用的是零件。一個特徵是一個會重複出現的機制部件，一個詞條就是它帶的那幾個特徵。
       </p>
     </div>
 
     <p class="tr-lead">
-      先看整張表。橫的是詞條，直的是特徵，每一行就是那個詞條的組成。
-    </p>
-
-    <div class="mx-wrap">
-      <table class="mx">
-        <thead>
-          <tr>
-            <th class="mx-corner">詞條 ╲ 特徵</th>
-            {TRAITS.map((t) => (
-              <th><a href={`#${t.id}`} title={t.gloss}>{t.name}</a></th>
-            ))}
-            <th class="mx-n">共</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sigs.map(({ e, traits }) => (
-            <tr data-entry={e.name}>
-              <th scope="row">
-                <a href={entryUrl(e.name)}><EntryName name={e.name} plain /></a>
-              </th>
-              {TRAITS.map((t) => (
-                <td class:list={[carries(e.name, t.id) && 'is-on']}>
-                  {carries(e.name, t.id) && <span class="mx-dot" title={t.name}></span>}
-                </td>
-              ))}
-              <td class="mx-n">{traits.length}</td>
-            </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr>
-            <th scope="row">帶這個特徵的詞條數</th>
-            {rows.map((r) => <td class="mx-n">{r.entries.length}</td>)}
-            <td class="mx-n">{total}</td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-    <p class="empty is-hidden" data-empty=".mx">沒有符合的詞條。</p>
-
-    <p class="tr-lead">
-      再看單一特徵，也就是讀表格的一直行。每個特徵附一句判斷用的問句，
-      因為這十個特徵不在 <code>entries/</code> 裡，是讀出來的，附上問句才好反對。
+      這頁一次講一個特徵，每個附一句判斷用的問句，因為這十個特徵不在 <code>entries/</code> 裡，
+      是讀出來的，附上問句才好反對。要看它們怎麼疊起來，去<a href={href('/build/')}>組裝</a>。
     </p>
 
     {rows.map((r) => (
@@ -94,26 +51,6 @@ const solo = sigs.filter((s) => s.traits.length === 1).map((s) => s.e.name);
       </section>
     ))}
 
-    <div class="gaps">
-      <h3>組合出來的鄰接</h3>
-      <p>
-        最後讀兩行。共用兩個以上特徵的配對就是詞條頁最下面的「鄰接」，
-        現在它由這張表決定，而不是由兩串英文標籤剛好撞到同一個字決定。
-      </p>
-      <ul class="prs">
-        {close.map((p) => (
-          <li>
-            <span class="pr-n">
-              <a href={entryUrl(p.a)}><EntryName name={p.a} plain /></a>
-              <span class="pr-x">∩</span>
-              <a href={entryUrl(p.b)}><EntryName name={p.b} plain /></a>
-            </span>
-            <span class="pr-t">{p.shared.map((t) => t.name).join('、')}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-
     {solo.length > 0 && (
       <div class="gaps">
         <h3>只帶一個特徵</h3>
@@ -131,5 +68,45 @@ const solo = sigs.filter((s) => s.traits.length === 1).map((s) => s.e.name);
         </ul>
       </div>
     )}
+
+    <details class="mx-fold">
+      <summary>整張表：{lex.entries.length} × {TRAITS.length}，{total} 個指派</summary>
+      <div class="mx-wrap">
+        <table class="mx">
+          <thead>
+            <tr>
+              <th class="mx-corner">詞條 ╲ 特徵</th>
+              {TRAITS.map((t) => (
+                <th><a href={`#${t.id}`} title={t.gloss}>{t.name}</a></th>
+              ))}
+              <th class="mx-n">共</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sigs.map(({ e, traits }) => (
+              <tr data-entry={e.name}>
+                <th scope="row">
+                  <a href={entryUrl(e.name)}><EntryName name={e.name} plain /></a>
+                </th>
+                {TRAITS.map((t) => (
+                  <td class:list={[carries(e.name, t.id) && 'is-on']}>
+                    {carries(e.name, t.id) && <span class="mx-dot" title={t.name}></span>}
+                  </td>
+                ))}
+                <td class="mx-n">{traits.length}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr>
+              <th scope="row">帶這個特徵的詞條數</th>
+              {rows.map((r) => <td class="mx-n">{r.entries.length}</td>)}
+              <td class="mx-n">{total}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <p class="empty is-hidden" data-empty=".mx">沒有符合的詞條。</p>
+    </details>
   </div>
 </Base>

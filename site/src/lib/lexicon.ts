@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseEntry, haystack, type Entry } from './parse';
 import { buildGraph, type Graph } from './graph';
+import { buildLattice, type Lattice } from './lattice';
 import { FAMILIES, DOMAIN_BUCKETS } from './overlays';
 
 export interface Lexicon {
@@ -15,6 +16,8 @@ export interface Lexicon {
   familyOf: Map<string, string>;
   bucketOf: Map<string, string>;
   graph: Graph;
+  /** The trait table read as a lattice, one trait at a time. */
+  lattice: Lattice;
   hay: Map<string, string>;
   counts: { entries: number; examples: number; links: number };
   /** Entry names present as files but absent from the index file. */
@@ -60,6 +63,7 @@ export async function loadLexicon(): Promise<Lexicon> {
     familyOf,
     bucketOf,
     graph,
+    lattice: buildLattice(entries),
     hay: new Map(entries.map((e) => [e.name, haystack(e)])),
     counts: {
       entries: entries.length,
@@ -94,3 +98,6 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 export const href = (path: string) => `${BASE}${path}`;
 
 export const entryUrl = (name: string) => href(`/entries/${encodeURIComponent(name)}/`);
+
+/** A place in the lattice. The root holds no trait, so it has no path segment. */
+export const buildUrl = (id: string) => href(id ? `/build/${id}/` : '/build/');

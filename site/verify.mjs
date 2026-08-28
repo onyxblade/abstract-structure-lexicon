@@ -24,6 +24,7 @@ const server = await createServer({
 const { parseEntry } = await server.ssrLoadModule('/src/lib/parse.ts');
 const { renderBlock, TENSION_LABELS } = await server.ssrLoadModule('/src/lib/structure.ts');
 const { buildGraph } = await server.ssrLoadModule('/src/lib/graph.ts');
+const { buildLattice } = await server.ssrLoadModule('/src/lib/lattice.ts');
 const { FAMILIES, DOMAIN_BUCKETS, SECTION_ROLES, STATIONS, TRAITS, ENTRY_TRAITS } =
   await server.ssrLoadModule('/src/lib/overlays.ts');
 
@@ -103,6 +104,22 @@ const unknownIds = [
 ];
 const lonely = TRAITS.filter((t) => carriers(t.id).length < 2).map((t) => `${t.id} (${t.name})`);
 
+// The lattice is the same table read one trait at a time, and it is what bounds
+// how much any /build/ page shows: a page offers exactly the moves the lattice
+// has, so 'most choices on a page' below is that bound, measured rather than
+// promised.
+const lattice = buildLattice(entries);
+const sigId = (n) =>
+  TRAITS.filter((t) => traitsOf(n).includes(t.id))
+    .map((t) => t.id)
+    .join('-');
+// /build/ is the URL of the node holding nothing. A trait every entry carried
+// would move the top of the lattice elsewhere and leave that URL with no page.
+const universal = lattice.root.intent.map((t) => `${t.id} (${t.name})`);
+// Each entry page links to its own combination, which is only a place to stand
+// while that signature is closed: some entry has to carry exactly it and no more.
+const homeless = entries.filter((e) => !lattice.byId.has(sigId(e.name))).map((e) => e.name);
+
 const line = (k, v) => console.log(`  ${String(k).padEnd(22)} ${v}`);
 console.log(`\n${entries.length} entries · ${blocks} structure blocks\n`);
 console.log('nodes rendered');
@@ -127,6 +144,15 @@ line(
 );
 for (const t of TRAITS) line(`  ${t.id} ${t.name}`, `${carriers(t.id).length} / ${entries.length} entries`);
 
+console.log('\nlattice (/build/)');
+line('places', lattice.nodes.length);
+line('steps between them', lattice.nodes.reduce((n, x) => n + x.down.length, 0));
+line('most choices on a page', Math.max(...lattice.nodes.map((n) => n.down.length)));
+line('deepest', `${Math.max(...lattice.nodes.map((n) => n.intent.length))} traits`);
+for (const b of lattice.bundled) {
+  line(`  ${b.trait.name} never alone`, `always with ${b.with.map((t) => t.name).join('、')}`);
+}
+
 const warn = (label, list) => {
   if (list.length) console.log(`\n! ${label}\n    ${list.join('\n    ')}`);
 };
@@ -141,6 +167,8 @@ warn('no trait yet (src/lib/overlays.ts), so nothing links to it', traitless);
 warn('in ENTRY_TRAITS but not an entry (src/lib/overlays.ts)', ghosts);
 warn('trait ids used but not declared in TRAITS (src/lib/overlays.ts)', unknownIds);
 warn('trait carried by fewer than 2 entries, so it groups nothing', lonely);
+warn('trait carried by every entry, which leaves /build/ without a page', universal);
+warn('signature is not a place in the lattice, so its entry page cannot link there', homeless);
 warn('examples with no domain tag', untagged.map((e) => `${e.name} (${e.examples.filter((x) => !x.domain).length})`));
 
 await server.close();

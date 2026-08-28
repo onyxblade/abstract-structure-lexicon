@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import EntryName from '../../components/EntryName.astro';
 import Section from '../../components/Section.astro';
-import { loadLexicon, entryUrl, href } from '../../lib/lexicon';
+import { loadLexicon, entryUrl, buildUrl, href } from '../../lib/lexicon';
 import { isLinked } from '../../lib/graph';
 import { stationsOf } from '../../lib/stations';
 import { traitsOf, neighboursOf } from '../../lib/traits';
@@ -27,6 +27,9 @@ const family = lex.familyOf.get(e.name);
 // The entry's signature, and the entries built from the same parts.
 const traits = traitsOf(e.name);
 const related = neighboursOf(e, lex.entries);
+// An entry's own trait set is always a closed concept, so it is always a place
+// in the lattice: this opens 組裝 already standing on this combination.
+const spot = lex.lattice.byId.get(traits.map((t) => t.id).join('-'));
 
 // Same seven stations for every entry. The ones this entry does not fill stay
 // in the spine, greyed, so a gap reads as a gap rather than as an absence.
@@ -56,6 +59,13 @@ const num = (n: number) => String(n).padStart(2, '0');
             </a>
           </li>
         ))}
+        {spot && (
+          <li>
+            <a class="tr tr--go" href={buildUrl(spot.id)}>
+              組裝<i>{spot.extent.length > 1 ? `同組還有 ${spot.extent.length - 1} 個` : '只有它'}</i>
+            </a>
+          </li>
+        )}
       </ul>
 
       <nav class="spine" aria-label="這個詞條的段落">
